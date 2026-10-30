@@ -1,0 +1,37 @@
+# Paramètres de la politique tarifaire du POC.
+# La grille (grille_tarifaire.csv) reprend les prix publics du document
+# « Conditions et tarifs – 1er juillet 2026 ». Les niveaux de délégation et les
+# remises maximales ci-dessous sont des HYPOTHÈSES DE DÉMONSTRATION : à remplacer
+# par la politique de dérogation réelle de l'établissement.
+
+[document]
+source = "BNP Paribas Banque Privée – Conditions et tarifs au 1er juillet 2026"
+date_effet = "2026-07-01"
+devise = "EUR"
+ttc = true
+
+# Ordre croissant de pouvoir. La colonne remise_<code>_pct de la grille donne,
+# pour chaque tarif, la remise maximale (en % du prix grille) que ce niveau peut accorder.
+[[delegations]]
+code = "banquier"
+libelle = "Banquier privé"
+
+[[delegations]]
+code = "directeur"
+libelle = "Directeur de centre"
+
+[[delegations]]
+code = "comite"
+libelle = "Comité tarifaire"
+
+[regles]
+# Réduction sur la cotisation la moins élevée de deux cartes du même compte (p. 7)
+reduction_deuxieme_carte_pct = 50
+# Plafonds légaux PEA / PEA-PME (pp. 33, 37, 38)
+pea_plafond_transaction_en_ligne_pct = 0.50
+pea_plafond_transaction_autre_pct = 1.20
+pea_plafond_garde_pct = 0.40
+pea_plafond_garde_par_ligne_eur = 5
+pea_plafond_garde_par_ligne_non_cotee_eur = 25
+# Offre Active : abonnement et droits de garde offerts à partir de ce nombre d'ordres (p. 38)
+offre_active_seuil_ordres_gratuite = 50

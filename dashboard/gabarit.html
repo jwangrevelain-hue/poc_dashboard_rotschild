@@ -1,0 +1,790 @@
+<title>Pilote de tarification</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@75..100,500..800&family=Source+Sans+3:wght@400;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Mise en page : bandeau d'en-tête, onglets collants, une colonne de travail de 1200 px ;
+   l'information d'état (délégation, verrou, dépassement) passe par des pastilles, jamais par la couleur seule. */
+:root {
+  --bg: #f3f5f8;
+  --surface: #ffffff;
+  --surface-2: #eaeef3;
+  --ink: #141b24;
+  --ink-2: #485364;
+  --ink-3: #6f7a89;
+  --rule: #d6dce4;
+  --accent: #22457a;
+  --accent-ink: #ffffff;
+  --accent-soft: #e1e9f5;
+  --serie-net: #2a78d6;
+  --serie-remise: #eb6834;
+  --niv-1: #86b6ef;
+  --niv-2: #3987e5;
+  --niv-3: #184f95;
+  --ok: #0ca30c;
+  --attention: #fab219;
+  --critique: #d03b3b;
+  --critique-soft: #fbe9e8;
+  --attention-soft: #fdf3dc;
+  --ok-soft: #e4f4e4;
+  --ombre: 0 1px 2px rgba(20, 27, 36, .06), 0 2px 8px rgba(20, 27, 36, .05);
+  --f-titre: "Archivo", "Helvetica Neue", Arial, sans-serif;
+  --f-texte: "Source Sans 3", "Segoe UI", system-ui, sans-serif;
+  --f-code: "IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+  --r: 6px;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0f141a; --surface: #161c24; --surface-2: #1d252f; --ink: #e7ebf0; --ink-2: #b2bbc7; --ink-3: #8994a3;
+    --rule: #2b3440; --accent: #93b4e8; --accent-ink: #0c1522; --accent-soft: #1d2b40;
+    --serie-net: #3987e5; --serie-remise: #d95926; --niv-1: #86b6ef; --niv-2: #3987e5; --niv-3: #1c5cab;
+    --critique-soft: #3a1d1d; --attention-soft: #3a2f14; --ok-soft: #16301a;
+    --ombre: 0 1px 2px rgba(0, 0, 0, .3); color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0f141a; --surface: #161c24; --surface-2: #1d252f; --ink: #e7ebf0; --ink-2: #b2bbc7; --ink-3: #8994a3;
+  --rule: #2b3440; --accent: #93b4e8; --accent-ink: #0c1522; --accent-soft: #1d2b40;
+  --serie-net: #3987e5; --serie-remise: #d95926; --niv-1: #86b6ef; --niv-2: #3987e5; --niv-3: #1c5cab;
+  --critique-soft: #3a1d1d; --attention-soft: #3a2f14; --ok-soft: #16301a;
+  --ombre: 0 1px 2px rgba(0, 0, 0, .3); color-scheme: dark;
+}
+* { box-sizing: border-box; }
+body { background: var(--bg); color: var(--ink); font-family: var(--f-texte); font-size: 15px; line-height: 1.5; }
+body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-area-inset-top, 0px); z-index: 10; background: var(--surface); }
+.gouttiere { padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+.cadre { max-width: 1200px; margin: 0 auto; }
+h1, h2, h3 { font-family: var(--f-titre); text-wrap: balance; margin: 0; letter-spacing: -0.01em; }
+.num { font-variant-numeric: tabular-nums; }
+code, .code { font-family: var(--f-code); font-size: .86em; }
+button, input, select { font: inherit; color: inherit; }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+/* En-tête */
+.entete { background: var(--surface); padding-block: 22px 16px; }
+.entete .cadre { display: grid; gap: 14px; }
+.surtitre { font-family: var(--f-code); font-size: 12px; letter-spacing: .08em; text-transform: uppercase; color: var(--ink-3); }
+.entete h1 { font-size: clamp(26px, 4vw, 36px); font-weight: 800; font-stretch: 85%; line-height: 1.05; }
+.entete .source { color: var(--ink-2); max-width: 70ch; margin: 0; }
+.meta-ligne { display: flex; flex-wrap: wrap; gap: 6px 18px; font-size: 13px; color: var(--ink-3); }
+.meta-ligne b { color: var(--ink); font-weight: 600; }
+nav.onglets { position: sticky; top: env(safe-area-inset-top, 0px); z-index: 5; background: var(--surface); border-bottom: 1px solid var(--rule); }
+nav.onglets .cadre { display: flex; gap: 2px; overflow-x: auto; scrollbar-width: none; }
+nav.onglets button { appearance: none; border: 0; background: none; padding: 12px 14px 11px; font-family: var(--f-titre); font-weight: 600; font-stretch: 90%; font-size: 15px; color: var(--ink-2); border-bottom: 3px solid transparent; cursor: pointer; white-space: nowrap; }
+nav.onglets button[aria-selected="true"] { color: var(--ink); border-bottom-color: var(--accent); }
+nav.onglets button:hover { color: var(--ink); }
+
+main { padding-block: 24px 56px; }
+.vue { display: grid; gap: 22px; }
+.bandeau-vue { display: flex; flex-wrap: wrap; align-items: end; justify-content: space-between; gap: 12px 24px; }
+.bandeau-vue h2 { font-size: 24px; font-weight: 700; font-stretch: 90%; }
+.bandeau-vue p { margin: 4px 0 0; color: var(--ink-2); max-width: 68ch; }
+.panneau { background: var(--surface); border: 1px solid var(--rule); border-radius: var(--r); padding: 18px; min-width: 0; }
+.panneau > h3 { font-size: 16px; font-weight: 700; font-stretch: 92%; margin-bottom: 4px; }
+.panneau > .sous { color: var(--ink-3); font-size: 13px; margin: 0 0 14px; }
+.deux { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 420px), 1fr)); gap: 22px; }
+.note { font-size: 13px; color: var(--ink-3); margin: 0; }
+
+/* Indicateurs */
+.kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 210px), 1fr)); gap: 12px; }
+.kpi { background: var(--surface); border: 1px solid var(--rule); border-radius: var(--r); padding: 14px 16px; display: grid; gap: 2px; align-content: start; }
+.kpi .lib { font-size: 12px; letter-spacing: .06em; text-transform: uppercase; color: var(--ink-3); font-weight: 600; }
+.kpi .val { font-family: var(--f-titre); font-weight: 700; font-stretch: 85%; font-size: 30px; line-height: 1.15; font-variant-numeric: tabular-nums; }
+.kpi .det { font-size: 13px; color: var(--ink-2); }
+.kpi.alerte { border-color: color-mix(in srgb, var(--critique) 55%, var(--rule)); background: var(--critique-soft); }
+
+/* Pastilles d'état */
+.pastille { display: inline-flex; align-items: center; gap: 6px; padding: 1px 8px 1px 6px; border-radius: 999px; font-size: 12.5px; font-weight: 600; white-space: nowrap; border: 1px solid var(--rule); background: var(--surface-2); color: var(--ink); }
+.pastille::before { content: ""; width: 8px; height: 8px; border-radius: 50%; background: var(--ink-3); flex: none; }
+.pastille.grille::before { background: var(--ink-3); }
+.pastille.banquier::before { background: var(--niv-1); }
+.pastille.directeur::before { background: var(--niv-2); }
+.pastille.comite::before { background: var(--niv-3); }
+.pastille.hors { background: var(--critique-soft); border-color: color-mix(in srgb, var(--critique) 50%, transparent); }
+.pastille.hors::before { content: "!"; width: 14px; height: 14px; color: #fff; background: var(--critique); font-size: 10px; font-weight: 800; display: grid; place-items: center; }
+.pastille.verrou { background: var(--attention-soft); border-color: color-mix(in srgb, var(--attention) 55%, transparent); }
+.pastille.verrou::before { border-radius: 2px; background: var(--attention); width: 8px; height: 9px; box-shadow: inset 0 0 0 1.5px var(--attention); }
+.pastille.ok { background: var(--ok-soft); border-color: color-mix(in srgb, var(--ok) 45%, transparent); }
+.pastille.ok::before { background: var(--ok); }
+
+/* Contrôles */
+.filtres { display: flex; flex-wrap: wrap; gap: 10px 14px; align-items: end; }
+.champ { display: grid; gap: 4px; min-width: 0; }
+.champ > span { font-size: 12px; font-weight: 600; color: var(--ink-2); letter-spacing: .02em; }
+.champ input[type="number"], .champ input[type="search"], .champ select { background: var(--surface); border: 1px solid var(--rule); border-radius: 5px; padding: 7px 9px; min-width: 0; width: 100%; }
+.champ input[type="number"] { font-variant-numeric: tabular-nums; text-align: right; }
+.case { display: inline-flex; align-items: center; gap: 8px; font-size: 14px; cursor: pointer; }
+.case input { width: 16px; height: 16px; accent-color: var(--accent); }
+.bouton { appearance: none; border: 1px solid var(--accent); background: var(--accent); color: var(--accent-ink); border-radius: 5px; padding: 8px 14px; font-weight: 600; cursor: pointer; }
+.bouton.second { background: var(--surface); color: var(--ink); border-color: var(--rule); }
+.bouton:hover { filter: brightness(1.06); }
+.bascule { display: inline-flex; border: 1px solid var(--rule); border-radius: 6px; overflow: hidden; background: var(--surface); }
+.bascule button { appearance: none; border: 0; background: none; padding: 7px 12px; cursor: pointer; font-weight: 600; font-size: 14px; color: var(--ink-2); }
+.bascule button + button { border-left: 1px solid var(--rule); }
+.bascule button[aria-pressed="true"] { background: var(--accent-soft); color: var(--ink); }
+
+/* Tableaux */
+.defile { overflow-x: auto; min-width: 0; }
+table { border-collapse: collapse; width: 100%; font-size: 14px; }
+th { text-align: left; font-size: 12px; font-weight: 600; letter-spacing: .04em; text-transform: uppercase; color: var(--ink-3); padding: 8px 10px; border-bottom: 1px solid var(--rule); white-space: nowrap; background: var(--surface); }
+td { padding: 9px 10px; border-bottom: 1px solid var(--rule); vertical-align: top; }
+tbody tr:hover td { background: color-mix(in srgb, var(--surface-2) 60%, transparent); }
+td.d, th.d { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
+td .petit { display: block; font-size: 12.5px; color: var(--ink-3); }
+.id { font-family: var(--f-code); font-size: 12.5px; color: var(--ink-2); white-space: nowrap; }
+tr.total td { font-weight: 700; border-top: 2px solid var(--ink); border-bottom: 0; background: none; }
+td input.remise { width: 70px; text-align: right; padding: 4px 6px; border: 1px solid var(--rule); border-radius: 4px; background: var(--surface); font-variant-numeric: tabular-nums; }
+td input.remise:disabled { background: var(--surface-2); color: var(--ink-3); }
+tr.en-alerte td { background: var(--critique-soft); }
+tr.cliquable { cursor: pointer; }
+
+/* Graphiques */
+.legende { display: flex; flex-wrap: wrap; gap: 6px 16px; font-size: 13px; color: var(--ink-2); margin-bottom: 10px; }
+.legende i { display: inline-block; width: 12px; height: 12px; border-radius: 3px; vertical-align: -1px; margin-right: 6px; }
+.barres { display: grid; gap: 7px; }
+.barre { display: grid; grid-template-columns: minmax(120px, 30%) 1fr auto; align-items: center; gap: 10px; font-size: 13.5px; }
+.barre .etiq { color: var(--ink-2); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.barre .piste { height: 18px; display: flex; gap: 2px; position: relative; }
+.barre .piste::after { content: ""; position: absolute; left: 0; top: -3px; bottom: -3px; border-left: 1px solid var(--ink-3); }
+.barre .seg { height: 100%; min-width: 0; }
+.barre .seg:last-child { border-radius: 0 4px 4px 0; }
+.barre .valeur { font-variant-numeric: tabular-nums; font-weight: 600; min-width: 84px; text-align: right; }
+.grad { display: flex; justify-content: space-between; font-size: 11.5px; color: var(--ink-3); font-variant-numeric: tabular-nums; border-top: 1px solid var(--rule); padding-top: 3px; }
+.grad span:first-child { transform: translateX(-2px); }
+.grad span:last-child { transform: translateX(40%); }
+#infobulle { position: fixed; z-index: 20; pointer-events: none; background: var(--ink); color: var(--bg); font-size: 13px; padding: 7px 10px; border-radius: 5px; max-width: 280px; box-shadow: var(--ombre); line-height: 1.4; }
+#infobulle b { font-variant-numeric: tabular-nums; }
+
+/* Simulateur */
+.simu { display: grid; grid-template-columns: minmax(0, 340px) minmax(0, 1fr); gap: 22px; align-items: start; }
+@media (max-width: 900px) { .simu { grid-template-columns: 1fr; } }
+.formulaire { display: grid; gap: 14px; }
+fieldset { border: 1px solid var(--rule); border-radius: var(--r); margin: 0; padding: 12px 14px 14px; display: grid; gap: 10px; background: var(--surface); min-width: 0; }
+legend { font-family: var(--f-titre); font-weight: 700; font-stretch: 92%; font-size: 14px; padding: 0 6px; }
+.grille2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.synthese { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 150px), 1fr)); gap: 0; border: 1px solid var(--rule); border-radius: var(--r); background: var(--surface); overflow: hidden; }
+.synthese > div { padding: 12px 14px; display: grid; gap: 2px; border-right: 1px solid var(--rule); }
+.synthese > div:last-child { border-right: 0; }
+.synthese .lib { font-size: 12px; text-transform: uppercase; letter-spacing: .06em; color: var(--ink-3); font-weight: 600; }
+.synthese .val { font-family: var(--f-titre); font-weight: 700; font-stretch: 85%; font-size: 24px; font-variant-numeric: tabular-nums; line-height: 1.2; }
+.encart { border-radius: var(--r); padding: 12px 14px; font-size: 14px; display: grid; gap: 4px; }
+.encart.critique { background: var(--critique-soft); border: 1px solid color-mix(in srgb, var(--critique) 45%, transparent); }
+.encart.info { background: var(--accent-soft); border: 1px solid color-mix(in srgb, var(--accent) 30%, transparent); }
+.actions { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+#copie-statut { font-size: 13px; color: var(--ink-2); }
+textarea#texte-demande { width: 100%; min-height: 160px; font-family: var(--f-code); font-size: 12.5px; border: 1px solid var(--rule); border-radius: 5px; padding: 10px; background: var(--surface-2); color: var(--ink); }
+
+/* Barèmes */
+.baremes { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 330px), 1fr)); gap: 14px; }
+.bareme { border: 1px solid var(--rule); border-radius: var(--r); padding: 12px 14px; background: var(--surface); min-width: 0; }
+.bareme h4 { margin: 0 0 2px; font-family: var(--f-code); font-size: 13px; font-weight: 500; }
+.bareme p { margin: 0 0 8px; font-size: 12.5px; color: var(--ink-3); }
+.bareme table { font-size: 13px; }
+.bareme td { padding: 5px 6px; }
+
+/* Méthode */
+.flux { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 230px), 1fr)); gap: 0; align-items: stretch; }
+.etape { padding: 16px; border: 1px solid var(--rule); background: var(--surface); position: relative; display: grid; gap: 6px; align-content: start; }
+.etape + .etape { border-left: 0; }
+@media (max-width: 760px) { .etape + .etape { border-left: 1px solid var(--rule); border-top: 0; } }
+.etape:first-child { border-radius: var(--r) 0 0 var(--r); }
+.etape:last-child { border-radius: 0 var(--r) var(--r) 0; }
+.etape .quoi { font-family: var(--f-code); font-size: 12px; color: var(--ink-3); }
+.etape h4 { margin: 0; font-family: var(--f-titre); font-stretch: 92%; font-size: 16px; }
+.etape ul { margin: 0; padding-left: 18px; font-size: 14px; color: var(--ink-2); display: grid; gap: 2px; }
+.prose { max-width: 72ch; display: grid; gap: 10px; }
+.prose p, .prose ol { margin: 0; }
+.prose ol { padding-left: 20px; display: grid; gap: 6px; }
+pre.cmd { margin: 0; background: var(--surface-2); border: 1px solid var(--rule); border-radius: 5px; padding: 10px 12px; font-family: var(--f-code); font-size: 13px; overflow-x: auto; }
+@media (prefers-reduced-motion: no-preference) { .barre .seg { transition: flex-basis .35s ease; } }
+@media (max-width: 520px) {
+  .barre { grid-template-columns: 1fr auto; }
+  .barre .etiq { grid-column: 1 / -1; }
+  .barre .etiq:empty { display: none; }
+  .grille2 { grid-template-columns: 1fr; }
+}
+</style>
+
+<header class="entete gouttiere">
+  <div class="cadre">
+    <div class="surtitre">Proof of concept · grille au 1er juillet 2026</div>
+    <h1>Pilote de tarification Banque Privée</h1>
+    <p class="source">Le classeur tarifaire remplacé par une grille de données unique, un moteur de calcul Python et ce tableau de bord. Prix repris des conditions publiques BNP Paribas Banque Privée ; marges de manœuvre et portefeuille fictifs pour la démonstration.</p>
+    <div class="meta-ligne" id="meta"></div>
+  </div>
+</header>
+<nav class="onglets gouttiere" aria-label="Vues">
+    <div class="cadre" role="tablist">
+      <button role="tab" id="t-pilotage" data-vue="pilotage">Pilotage</button>
+      <button role="tab" id="t-simulateur" data-vue="simulateur">Simulateur client</button>
+      <button role="tab" id="t-grille" data-vue="grille">Grille tarifaire</button>
+      <button role="tab" id="t-methode" data-vue="methode">Comment ça marche</button>
+    </div>
+</nav>
+
+<main class="gouttiere">
+  <div class="cadre">
+
+    <!-- PILOTAGE -->
+    <section class="vue" id="v-pilotage" hidden>
+      <div class="bandeau-vue">
+        <div>
+          <h2>Revenus et dérogations du portefeuille</h2>
+          <p>240 clients fictifs tarifés avec la grille en vigueur et leurs remises négociées. Chaque montant est recalculé ici à partir de la grille.</p>
+        </div>
+        <div class="filtres">
+          <label class="champ"><span>Centre</span>
+            <select id="f-centre"></select>
+          </label>
+          <label class="case" style="padding-bottom:8px"><input type="checkbox" id="f-scenario"> Ramener les dérogations au plafond autorisé</label>
+        </div>
+      </div>
+      <div class="kpis" id="kpis"></div>
+      <div class="deux">
+        <div class="panneau">
+          <h3>Revenu annuel par famille de tarifs</h3>
+          <p class="sous">Net facturé et remises accordées ; la barre entière est le revenu au prix grille.</p>
+          <div class="legende"><span><i style="background:var(--serie-net)"></i>Net facturé</span><span><i style="background:var(--serie-remise)"></i>Remises accordées</span></div>
+          <div class="barres" id="g-familles"></div>
+        </div>
+        <div class="panneau">
+          <h3>Remises par niveau de délégation</h3>
+          <p class="sous">Montant des remises selon le niveau qui pouvait les accorder.</p>
+          <div class="barres" id="g-niveaux"></div>
+          <p class="note" id="n-niveaux" style="margin-top:12px"></p>
+        </div>
+      </div>
+      <div class="panneau">
+        <h3>Dérogations hors délégation</h3>
+        <p class="sous">Remises supérieures à ce que le comité tarifaire peut accorder : à régulariser ou à faire valider.</p>
+        <div class="defile"><table id="t-derog"></table></div>
+      </div>
+      <div class="panneau">
+        <h3>Par centre</h3>
+        <p class="sous">Cliquer sur une ligne pour filtrer le tableau de bord.</p>
+        <div class="defile"><table id="t-centres"></table></div>
+      </div>
+    </section>
+
+    <!-- SIMULATEUR -->
+    <section class="vue" id="v-simulateur" hidden>
+      <div class="bandeau-vue">
+        <div>
+          <h2>Facture annuelle d'un client</h2>
+          <p>Choisissez un profil d'exemple ou modifiez les encours, puis saisissez une remise sur une ligne : le niveau de validation requis s'affiche immédiatement.</p>
+        </div>
+        <label class="champ" style="min-width:260px"><span>Profil d'exemple</span>
+          <select id="s-profil"></select>
+        </label>
+      </div>
+      <div class="simu">
+        <form class="formulaire" id="s-form" autocomplete="off"></form>
+        <div class="vue" style="gap:16px; min-width:0">
+          <div class="synthese" id="s-synthese"></div>
+          <div id="s-alerte"></div>
+          <div class="panneau" style="padding:6px 8px">
+            <div class="defile"><table id="s-lignes"></table></div>
+          </div>
+          <div class="panneau">
+            <h3>Demande de validation</h3>
+            <p class="sous">Texte prêt à coller dans un mail au directeur ou au comité.</p>
+            <textarea id="texte-demande" readonly></textarea>
+            <div class="actions" style="margin-top:10px">
+              <button class="bouton" type="button" id="b-copier">Copier la demande</button>
+              <span id="copie-statut" role="status"></span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- GRILLE -->
+    <section class="vue" id="v-grille" hidden>
+      <div class="bandeau-vue">
+        <div>
+          <h2>Grille tarifaire</h2>
+          <p>La source de vérité, telle que chargée depuis <code>data/grille_tarifaire.csv</code>. Chaque ligne renvoie à sa page dans le document du 1er juillet 2026.</p>
+        </div>
+      </div>
+      <div class="filtres">
+        <label class="champ" style="flex:1 1 240px"><span>Rechercher</span><input type="search" id="g-recherche" placeholder="Libellé, identifiant, rubrique…"></label>
+        <label class="champ" style="flex:0 1 260px"><span>Famille</span><select id="g-famille"></select></label>
+        <label class="case" style="padding-bottom:8px"><input type="checkbox" id="g-nego"> Négociables seulement</label>
+        <label class="case" style="padding-bottom:8px"><input type="checkbox" id="g-stock"> Inclure les offres plus commercialisées</label>
+      </div>
+      <p class="note" id="g-compte"></p>
+      <div class="panneau" style="padding:6px 8px"><div class="defile"><table id="g-table"></table></div></div>
+      <div class="panneau">
+        <h3>Barèmes</h3>
+        <p class="sous">« Par tranches » : chaque tranche à son taux, comme un impôt progressif. « Par palier » : tout le montant au taux du palier atteint.</p>
+        <div class="baremes" id="g-baremes"></div>
+      </div>
+    </section>
+
+    <!-- METHODE -->
+    <section class="vue" id="v-methode" hidden>
+      <div class="bandeau-vue">
+        <div>
+          <h2>Comment ça marche</h2>
+          <p>Une seule source de données, contrôlée à chaque modification, qui alimente à la fois ce tableau de bord et un export Excel.</p>
+        </div>
+      </div>
+      <div class="flux">
+        <div class="etape">
+          <span class="quoi">data/</span>
+          <h4>La grille en données</h4>
+          <ul>
+            <li><code>grille_tarifaire.csv</code> : une ligne par tarif, avec sa page source</li>
+            <li><code>baremes.csv</code> : droits de garde, ordres de Bourse, change…</li>
+            <li><code>politique.toml</code> : délégations et règles transverses</li>
+          </ul>
+        </div>
+        <div class="etape">
+          <span class="quoi">python construire.py</span>
+          <h4>Validation et calcul</h4>
+          <ul>
+            <li>Refuse une grille incohérente : unité inconnue, barème troué, délégations décroissantes, tarif verrouillé sans motif</li>
+            <li>Calcule factures, plafonds PEA, minimums</li>
+            <li>Tests de référence sur les exemples du document</li>
+          </ul>
+        </div>
+        <div class="etape">
+          <span class="quoi">sortie/</span>
+          <h4>Les livrables régénérés</h4>
+          <ul>
+            <li><code>dashboard.html</code> : cette page</li>
+            <li><code>grille_tarifaire.xlsx</code> : la même grille pour ceux qui restent sur Excel</li>
+            <li><code>donnees.json</code> : pour d'autres outils</li>
+          </ul>
+        </div>
+      </div>
+      <div class="deux">
+        <div class="panneau prose">
+          <h3>Modifier un tarif</h3>
+          <ol>
+            <li>Changer la valeur dans <code>data/grille_tarifaire.csv</code> (tableur ou éditeur de texte).</li>
+            <li>Lancer la construction :</li>
+          </ol>
+          <pre class="cmd">python construire.py</pre>
+          <ol start="3">
+            <li>Si la grille est valide, le tableau de bord et l'Excel sont régénérés. Sinon, la liste des erreurs indique la ligne et la règle enfreinte, et rien n'est publié.</li>
+          </ol>
+          <p class="note">Avec Git, chaque changement de prix laisse une trace : qui, quand, quelle ligne, quelle ancienne valeur.</p>
+        </div>
+        <div class="panneau prose">
+          <h3>Ce qui vient du document, ce qui est supposé</h3>
+          <p><span class="pastille ok">Document</span> Les prix, taux, minimums, maximums et barèmes : repris du document « Conditions et tarifs – 1er juillet 2026 », page par page.</p>
+          <p><span class="pastille verrou">Réglementé</span> Les plafonds légaux (frais d'incident, inactivité, transfert de PEA, successions) : signalés comme non négociables.</p>
+          <p><span class="pastille directeur">Hypothèse</span> Les remises maximales par niveau de délégation et le portefeuille de 240 clients : inventés pour la démonstration, à remplacer par la politique de dérogation réelle.</p>
+        </div>
+      </div>
+      <div class="panneau">
+        <h3>Excel ou grille de données</h3>
+        <p class="sous">Ce que change le passage du classeur à une grille de données.</p>
+        <div class="defile"><table id="t-comparaison"></table></div>
+      </div>
+    </section>
+  </div>
+</main>
+<div id="infobulle" hidden></div>
+
+<script>
+/*__MOTEUR__*/
+</script>
+<script>
+"use strict";
+const D = /*__DONNEES__*/null;
+const M = Moteur.creerMoteur(D);
+const DELEG = D.delegations;
+const LIB_NIVEAU = Object.fromEntries(DELEG.map((d) => [d.code, d.libelle]));
+const nf0 = new Intl.NumberFormat("fr-FR", { maximumFractionDigits: 0 });
+const nf2 = new Intl.NumberFormat("fr-FR", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+const eur = (x) => nf0.format(Math.round(x)) + " €";
+const eur2 = (x) => nf2.format(x) + " €";
+const keur = (x) => Math.abs(x) >= 1e6 ? nf2.format(x / 1e6) + " M€" : nf0.format(Math.round(x / 1000)) + " k€";
+const pct = (x, d = 2) => x.toLocaleString("fr-FR", { minimumFractionDigits: d, maximumFractionDigits: d }) + " %";
+const esc = (s) => String(s ?? "").replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+const $ = (id) => document.getElementById(id);
+const PERIODES = { an: "par an", mois: "par mois", operation: "par opération", ordre: "par ordre", ligne: "par ligne", dossier: "par dossier" };
+
+function pastilleControle(c) {
+  if (c.statut === "grille") return `<span class="pastille grille">Prix grille</span>`;
+  if (c.statut === "dans_delegation") return `<span class="pastille ${c.niveau}">${esc(LIB_NIVEAU[c.niveau])}</span>`;
+  if (c.statut === "verrouille") return `<span class="pastille verrou" title="${esc(c.message)}">Verrouillé</span>`;
+  return `<span class="pastille hors" title="${esc(c.message)}">Hors délégation</span>`;
+}
+function plafond(t) { return Math.max(...Object.values(t.remises_max)); }
+
+/* ---------- infobulle ---------- */
+const bulle = $("infobulle");
+function attacherBulles(conteneur) {
+  conteneur.querySelectorAll("[data-bulle]").forEach((el) => {
+    el.addEventListener("pointermove", (e) => {
+      bulle.innerHTML = el.dataset.bulle; bulle.hidden = false;
+      const w = bulle.offsetWidth, h = bulle.offsetHeight;
+      let x = e.clientX + 14, y = e.clientY - h - 10;
+      if (x + w > innerWidth - 8) x = e.clientX - w - 14;
+      if (y < 8) y = e.clientY + 16;
+      bulle.style.left = x + "px"; bulle.style.top = y + "px";
+    });
+    el.addEventListener("pointerleave", () => { bulle.hidden = true; });
+  });
+}
+
+/* ---------- en-tête ---------- */
+$("meta").innerHTML = [
+  `<span><b>${D.meta.nb_tarifs}</b> tarifs</span>`,
+  `<span><b>${D.meta.nb_baremes}</b> barèmes</span>`,
+  `<span>Délégations : <b>${DELEG.map((d) => d.libelle).join(" › ")}</b></span>`,
+  `<span>Données générées le <b>${esc(D.meta.genere_le)}</b></span>`,
+].join("");
+
+/* ---------- navigation ---------- */
+const VUES = ["pilotage", "simulateur", "grille", "methode"];
+function afficher(vue) {
+  if (!VUES.includes(vue)) vue = "pilotage";
+  VUES.forEach((v) => {
+    $("v-" + v).hidden = v !== vue;
+    const b = $("t-" + v);
+    b.setAttribute("aria-selected", String(v === vue));
+    b.tabIndex = v === vue ? 0 : -1;
+  });
+}
+document.querySelectorAll("nav.onglets button").forEach((b) => b.addEventListener("click", () => {
+  location.hash = b.dataset.vue; afficher(b.dataset.vue);
+}));
+addEventListener("hashchange", () => afficher(location.hash.slice(1)));
+
+/* ---------- PILOTAGE ---------- */
+const CENTRES = [...new Set(D.profils_portefeuille.map((p) => p.centre))].sort();
+$("f-centre").innerHTML = `<option value="">Tous les centres</option>` + CENTRES.map((c) => `<option>${esc(c)}</option>`).join("");
+
+function profilScenario(p) {
+  const remises = { ...p.remises };
+  for (const [id, r] of Object.entries(remises)) {
+    const t = M.tarif(id);
+    if (t.negociable && r > plafond(t)) remises[id] = plafond(t);
+  }
+  return { ...p, remises };
+}
+
+function agreger(centre, scenario) {
+  const familles = {}, niveaux = Object.fromEntries([...DELEG.map((d) => d.code), "hors"].map((k) => [k, { lignes: 0, remise: 0 }]));
+  const centres = {}, derog = [];
+  let brut = 0, net = 0, encours = 0, n = 0;
+  for (const p0 of D.profils_portefeuille) {
+    const p = scenario ? profilScenario(p0) : p0;
+    const s = M.simuler(p);
+    const pc = centres[p.centre] ??= { clients: 0, encours: 0, net: 0, brut: 0, alertes: 0 };
+    pc.clients++; pc.encours += s.encours; pc.net += s.total_net; pc.brut += s.total_brut; pc.alertes += s.alertes;
+    if (centre && p.centre !== centre) continue;
+    n++; brut += s.total_brut; net += s.total_net; encours += s.encours;
+    for (const l of s.lignes) {
+      const f = familles[l.famille] ??= { brut: 0, net: 0 };
+      f.brut += l.brut; f.net += l.net;
+      const remise = l.brut - l.net;
+      if (l.controle.statut === "dans_delegation") { niveaux[l.controle.niveau].lignes++; niveaux[l.controle.niveau].remise += remise; }
+      if (l.controle.statut === "hors_delegation") {
+        niveaux.hors.lignes++; niveaux.hors.remise += remise;
+        const pl = plafond(M.tarif(l.tarif_id));
+        derog.push({ client: p.id, centre: p.centre, id: l.tarif_id, libelle: l.libelle, remise: l.remise_pct, plafond: pl, brut: l.brut, depassement: l.brut * (l.remise_pct - pl) / 100 });
+      }
+    }
+  }
+  derog.sort((a, b) => b.depassement - a.depassement);
+  return { n, brut, net, encours, familles, niveaux, centres, derog };
+}
+
+function barresFamilles(familles) {
+  const lignes = Object.entries(familles).filter(([, v]) => v.brut > 0).sort((a, b) => b[1].brut - a[1].brut);
+  const max = Math.max(...lignes.map(([, v]) => v.brut));
+  const pas = echelle(max);
+  const html = lignes.map(([nom, v]) => {
+    const r = v.brut - v.net;
+    return `<div class="barre">
+      <span class="etiq" title="${esc(nom)}">${esc(nom)}</span>
+      <span class="piste">
+        <span class="seg" style="flex:0 0 ${(v.net / pas.max) * 100}%;background:var(--serie-net)" data-bulle="<b>${esc(nom)}</b><br>Net facturé : <b>${eur(v.net)}</b><br>Prix grille : ${eur(v.brut)}"></span>
+        ${r > 0.5 ? `<span class="seg" style="flex:0 0 calc(${(r / pas.max) * 100}% - 2px);background:var(--serie-remise)" data-bulle="<b>${esc(nom)}</b><br>Remises : <b>${eur(r)}</b> (${pct(r / v.brut * 100, 1)} du prix grille)"></span>` : ""}
+      </span>
+      <span class="valeur">${keur(v.net)}</span>
+    </div>`;
+  }).join("");
+  $("g-familles").innerHTML = html + graduation(pas);
+  attacherBulles($("g-familles"));
+}
+
+function echelle(max) {
+  const brut = max / 4, p = Math.pow(10, Math.floor(Math.log10(brut))), m = brut / p;
+  const unite = (m <= 1 ? 1 : m <= 2 ? 2 : m <= 2.5 ? 2.5 : m <= 5 ? 5 : 10) * p;
+  return { unite, max: unite * Math.ceil(max / unite) };
+}
+function graduation(pas) {
+  const crans = [];
+  for (let v = 0; v <= pas.max + 1e-6; v += pas.unite) crans.push(`<span>${v === 0 ? "0" : keur(v)}</span>`);
+  return `<div class="barre" aria-hidden="true"><span></span><span class="grad">${crans.join("")}</span><span class="valeur"></span></div>`;
+}
+
+function barresNiveaux(niveaux) {
+  const items = [...DELEG.map((d, i) => ({ k: d.code, lib: d.libelle, coul: `var(--niv-${i + 1})` })), { k: "hors", lib: "Hors délégation", coul: "var(--critique)" }];
+  const max = Math.max(...items.map((it) => niveaux[it.k].remise), 1);
+  const pas = echelle(max);
+  $("g-niveaux").innerHTML = items.map((it) => {
+    const v = niveaux[it.k];
+    const lib = it.k === "hors" ? `<span class="pastille hors">Hors délégation</span>` : esc(it.lib);
+    return `<div class="barre">
+      <span class="etiq">${lib}</span>
+      <span class="piste"><span class="seg" style="flex:0 0 ${(v.remise / pas.max) * 100}%;background:${it.coul}" data-bulle="<b>${esc(it.lib)}</b><br>${v.lignes} remise${v.lignes > 1 ? "s" : ""} pour <b>${eur(v.remise)}</b>"></span></span>
+      <span class="valeur">${keur(v.remise)}</span>
+    </div>`;
+  }).join("") + graduation(pas);
+  const total = items.reduce((s, it) => s + niveaux[it.k].lignes, 0);
+  $("n-niveaux").textContent = `${total} lignes remisées. Les remises « hors délégation » dépassent le plafond du comité tarifaire.`;
+  attacherBulles($("g-niveaux"));
+}
+
+function rendrePilotage() {
+  const centre = $("f-centre").value, scenario = $("f-scenario").checked;
+  const a = agreger(centre, scenario);
+  const base = scenario ? agreger(centre, false) : null;
+  const remise = a.brut - a.net;
+  const depassement = a.derog.reduce((s, d) => s + d.depassement, 0);
+  $("kpis").innerHTML = `
+    <div class="kpi"><span class="lib">Revenu au prix grille</span><span class="val">${keur(a.brut)}</span><span class="det">${a.n} clients · ${keur(a.encours)} d'encours tarifé</span></div>
+    <div class="kpi"><span class="lib">Revenu net facturé</span><span class="val">${keur(a.net)}</span><span class="det">${pct(a.net / a.encours * 100, 2)} de l'encours${base ? ` · <b>+${eur(a.net - base.net)}</b> avec le scénario` : ""}</span></div>
+    <div class="kpi"><span class="lib">Remises accordées</span><span class="val">${keur(remise)}</span><span class="det">${pct(remise / a.brut * 100, 1)} du prix grille</span></div>
+    <div class="kpi ${a.derog.length ? "alerte" : ""}"><span class="lib">Hors délégation</span><span class="val">${a.derog.length}</span><span class="det">${a.derog.length ? `${eur(depassement)} au-delà des plafonds` : `<span class="pastille ok">Aucune dérogation à régulariser</span>`}</span></div>`;
+  barresFamilles(a.familles);
+  barresNiveaux(a.niveaux);
+  $("t-derog").innerHTML = a.derog.length ? `<thead><tr><th>Client</th><th>Centre</th><th>Tarif</th><th class="d">Remise</th><th class="d">Plafond</th><th class="d">Prix grille</th><th class="d">Dépassement</th></tr></thead><tbody>` +
+    a.derog.map((d) => `<tr><td class="id">${d.client}</td><td>${esc(d.centre)}</td><td><span class="id">${d.id}</span> ${esc(d.libelle)}</td><td class="d">${pct(d.remise, 0)}</td><td class="d">${pct(d.plafond, 0)}</td><td class="d">${eur(d.brut)}</td><td class="d"><b>${eur(d.depassement)}</b></td></tr>`).join("") + `</tbody>`
+    : `<tbody><tr><td><span class="pastille ok">Aucune dérogation hors délégation</span> ${scenario ? "Le scénario ramène chaque remise au plafond du comité." : ""}</td></tr></tbody>`;
+  $("t-centres").innerHTML = `<thead><tr><th>Centre</th><th class="d">Clients</th><th class="d">Encours tarifé</th><th class="d">Revenu net</th><th class="d">Taux moyen</th><th class="d">Remises</th><th>Alertes</th></tr></thead><tbody>` +
+    Object.entries(a.centres).map(([c, v]) => `<tr class="cliquable" data-centre="${esc(c)}" ${c === centre ? 'style="outline:2px solid var(--accent);outline-offset:-2px"' : ""}><td>${esc(c)}</td><td class="d">${v.clients}</td><td class="d">${keur(v.encours)}</td><td class="d">${eur(v.net)}</td><td class="d">${pct(v.net / v.encours * 100, 2)}</td><td class="d">${pct((v.brut - v.net) / v.brut * 100, 1)}</td><td>${v.alertes ? `<span class="pastille hors">${v.alertes}</span>` : `<span class="pastille ok">0</span>`}</td></tr>`).join("") + `</tbody>`;
+  $("t-centres").querySelectorAll("tr[data-centre]").forEach((tr) => tr.addEventListener("click", () => {
+    $("f-centre").value = $("f-centre").value === tr.dataset.centre ? "" : tr.dataset.centre; rendrePilotage();
+  }));
+}
+$("f-centre").addEventListener("change", rendrePilotage);
+$("f-scenario").addEventListener("change", rendrePilotage);
+
+/* ---------- SIMULATEUR ---------- */
+const offres = (prefixe) => D.tarifs.filter((t) => t.id.startsWith(prefixe) && t.statut === "commercialise");
+let profil = null;
+
+$("s-profil").innerHTML = Object.entries(D.exemples).map(([k, e]) => `<option value="${k}">${esc(e.profil.nom)}</option>`).join("");
+
+const CHAMPS = [
+  { titre: "Relation", champs: [
+    { id: "convention_bp", type: "case", lib: "Convention Banque Privée (forfait 1 000 €)" },
+    { id: "cartes", type: "cartes", lib: "Cartes" },
+  ] },
+  { titre: "Gestion sous mandat", champs: [
+    { id: "mandat_titres.offre", type: "offre", prefixe: "GSM-1", lib: "Mandat titres" },
+    { id: "mandat_titres.encours", type: "nombre", lib: "Encours (€)", pas: 10000 },
+    { id: "mandat_titres.performance_pct", type: "nombre", lib: "Performance annuelle (%)", pas: 0.5 },
+    { id: "mandat_assurance.offre", type: "offre", prefixe: "GSA-", lib: "Mandat assurance vie" },
+    { id: "mandat_assurance.encours", type: "nombre", lib: "Encours (€)", pas: 10000 },
+  ] },
+  { titre: "Gestion conseillée", champs: [
+    { id: "conseil.offre", type: "offre", prefixe: "GCO-", lib: "Convention de conseil" },
+    { id: "conseil.encours", type: "nombre", lib: "Encours (€)", pas: 10000 },
+  ] },
+  { titre: "Compte-titres en gestion libre", champs: [
+    { id: "compte_titres.valorisation", type: "nombre", lib: "Valorisation (€)", pas: 10000 },
+    { id: "compte_titres.enveloppe", type: "choix", options: [["CIF", "Compte-titres"], ["PEA", "PEA"]], lib: "Enveloppe" },
+    { id: "compte_titres.offre", type: "choix", options: [["Start", "Offre Start"], ["Active", "Offre Active"]], lib: "Offre de Bourse" },
+    { id: "compte_titres.lignes_porteur", type: "nombre", lib: "Lignes au porteur", pas: 1 },
+    { id: "compte_titres.lignes_nominatif", type: "nombre", lib: "Lignes au nominatif", pas: 1 },
+    { id: "compte_titres.ordres_en_ligne", type: "nombre", lib: "Ordres en ligne / an", pas: 1 },
+    { id: "compte_titres.montant_moyen_ordre", type: "nombre", lib: "Montant moyen (€)", pas: 500 },
+    { id: "compte_titres.ordres_agence", type: "nombre", lib: "Ordres en agence / an", pas: 1 },
+    { id: "compte_titres.montant_moyen_ordre_agence", type: "nombre", lib: "Montant moyen (€)", pas: 1000 },
+  ] },
+  { titre: "Flux et services", champs: [
+    { id: "versements_av", type: "nombre", lib: "Versements assurance vie (€)", pas: 10000 },
+    { id: "versements_per", type: "nombre", lib: "Versements PER (€)", pas: 5000 },
+    { id: "virements_non_sepa_agence", type: "nombre", lib: "Virements hors SEPA en agence", pas: 1 },
+    { id: "depenses_hors_zone_euro", type: "nombre", lib: "Paiements hors zone euro (€)", pas: 1000 },
+    { id: "nb_paiements_hors_zone_euro", type: "nombre", lib: "Nombre de ces paiements", pas: 1 },
+    { id: "credit_immo", type: "nombre", lib: "Crédit immobilier (€)", pas: 10000 },
+    { id: "coffre", type: "case", lib: "Coffre-fort (option 1)" },
+  ] },
+];
+const CARTES = ["CAR-001", "CAR-002", "CAR-003", "CAR-004", "CAR-005"];
+
+function lire(chemin) { return chemin.split(".").reduce((o, k) => (o == null ? undefined : o[k]), profil); }
+function ecrire(chemin, v) {
+  const ks = chemin.split("."); let o = profil;
+  for (const k of ks.slice(0, -1)) o = o[k] ??= {};
+  o[ks.at(-1)] = v;
+}
+function domId(chemin) { return "s-" + chemin.replace(/\./g, "-"); }
+
+function construireFormulaire() {
+  $("s-form").innerHTML = CHAMPS.map((g) => `<fieldset><legend>${g.titre}</legend><div class="grille2">` + g.champs.map((c) => {
+    const id = domId(c.id);
+    if (c.type === "case") return `<label class="case" style="grid-column:1/-1"><input type="checkbox" id="${id}" data-chemin="${c.id}"> ${c.lib}</label>`;
+    if (c.type === "cartes") return `<div class="champ" style="grid-column:1/-1"><span>${c.lib}</span><div style="display:flex;flex-wrap:wrap;gap:6px 14px">` +
+      CARTES.map((cid) => `<label class="case"><input type="checkbox" id="s-carte-${cid}" data-carte="${cid}"> ${esc(M.tarif(cid).libelle.replace("Carte ", ""))}</label>`).join("") + `</div></div>`;
+    if (c.type === "offre") return `<label class="champ" style="grid-column:1/-1"><span>${c.lib}</span><select id="${id}" data-chemin="${c.id}"><option value="">Aucun</option>` +
+      offres(c.prefixe).map((t) => `<option value="${t.id}">${esc(t.libelle.replace(/^Mandat |^Orientation |^Convention de conseil( assurance)? – /, ""))} · ${pct(t.valeur)}${t.perf_pct ? " + perf." : ""}</option>`).join("") + `</select></label>`;
+    if (c.type === "choix") return `<label class="champ"><span>${c.lib}</span><select id="${id}" data-chemin="${c.id}">` + c.options.map(([v, l]) => `<option value="${v}">${l}</option>`).join("") + `</select></label>`;
+    return `<label class="champ"><span>${c.lib}</span><input type="number" min="0" step="${c.pas}" id="${id}" data-chemin="${c.id}"></label>`;
+  }).join("") + `</div></fieldset>`).join("");
+  $("s-form").addEventListener("input", (e) => {
+    const el = e.target;
+    if (el.dataset.carte) {
+      profil.cartes = CARTES.filter((cid) => $("s-carte-" + cid).checked);
+    } else if (el.dataset.chemin) {
+      const v = el.type === "checkbox" ? el.checked : el.type === "number" ? (el.value === "" ? 0 : +el.value) : el.value;
+      ecrire(el.dataset.chemin, v);
+      const racine = el.dataset.chemin.split(".")[0];
+      if (el.tagName === "SELECT" && el.dataset.chemin.endsWith(".offre") && !v) profil[racine].encours = 0;
+    }
+    rendreSimulation();
+  });
+}
+
+function remplirFormulaire() {
+  CHAMPS.forEach((g) => g.champs.forEach((c) => {
+    if (c.type === "cartes") { CARTES.forEach((cid) => { $("s-carte-" + cid).checked = (profil.cartes || []).includes(cid); }); return; }
+    const el = $(domId(c.id)); const v = lire(c.id);
+    if (c.type === "case") el.checked = !!v;
+    else if (c.type === "offre" || c.type === "choix") el.value = v ?? (c.type === "choix" ? c.options[0][0] : "");
+    else el.value = v ?? 0;
+  }));
+}
+
+function chargerProfil(cle) {
+  profil = JSON.parse(JSON.stringify(D.exemples[cle].profil));
+  profil.remises ??= {};
+  for (const k of ["mandat_titres", "mandat_assurance", "conseil"]) profil[k] ??= { offre: "", encours: 0 };
+  profil.compte_titres ??= { valorisation: 0, enveloppe: "CIF", offre: "Start" };
+  remplirFormulaire();
+  rendreSimulation();
+}
+
+function rendreSimulation() {
+  const p = { ...profil };
+  for (const k of ["mandat_titres", "mandat_assurance", "conseil"]) if (!p[k] || !p[k].offre) delete p[k];
+  const s = M.simuler(p);
+  const niveau = s.lignes.some((l) => l.controle.statut === "hors_delegation") ? `<span class="pastille hors">Hors délégation</span>`
+    : s.niveau_requis ? `<span class="pastille ${s.niveau_requis}">${esc(LIB_NIVEAU[s.niveau_requis])}</span>` : `<span class="pastille grille">Aucune</span>`;
+  $("s-synthese").innerHTML = `
+    <div><span class="lib">Facture au prix grille</span><span class="val">${eur(s.total_brut)}</span></div>
+    <div><span class="lib">Facture négociée</span><span class="val">${eur(s.total_net)}</span><span class="note">${s.remise_totale > 0 ? `−${eur(s.remise_totale)} de remises` : "Aucune remise"}</span></div>
+    <div><span class="lib">Coût sur encours</span><span class="val">${s.taux_global_pct != null ? pct(s.taux_global_pct) : "–"}</span><span class="note">${s.encours ? keur(s.encours) + " tarifés" : ""}</span></div>
+    <div><span class="lib">Validation requise</span><span style="padding-top:6px">${niveau}</span></div>`;
+  const hors = s.lignes.filter((l) => l.controle.statut === "hors_delegation");
+  const verr = s.lignes.filter((l) => l.controle.statut === "verrouille");
+  $("s-alerte").innerHTML = hors.length || verr.length ? `<div class="encart critique">${hors.map((l) => `<span><b>${l.tarif_id}</b> : remise de ${pct(l.remise_pct, 0)} au-delà du plafond de ${pct(plafond(M.tarif(l.tarif_id)), 0)}. Réduire la remise ou la présenter hors grille.</span>`).join("")}${verr.map((l) => `<span><b>${l.tarif_id}</b> : tarif non négociable (${esc(M.tarif(l.tarif_id).motif_verrou)}). La remise saisie n'est pas appliquée.</span>`).join("")}</div>` : "";
+  $("s-lignes").innerHTML = `<thead><tr><th>Tarif</th><th class="d">Prix grille</th><th class="d">Remise</th><th class="d">Net</th><th>Validation</th></tr></thead><tbody>` +
+    s.lignes.map((l) => {
+      const t = M.tarif(l.tarif_id);
+      const alerte = l.controle.statut === "hors_delegation" || l.controle.statut === "verrouille";
+      return `<tr class="${alerte ? "en-alerte" : ""}"><td><span class="id">${l.tarif_id}</span> ${esc(l.libelle)}<span class="petit">${esc(l.detail)} · p. ${l.page}</span></td>
+        <td class="d">${eur2(l.brut)}</td>
+        <td class="d"><input class="remise" type="number" min="0" max="100" step="1" id="r-${l.tarif_id}" data-tarif="${l.tarif_id}" value="${l.remise_pct || ""}" placeholder="0" aria-label="Remise en % sur ${esc(l.libelle)}" ${l.brut === 0 ? "disabled" : ""}> %</td>
+        <td class="d"><b>${eur2(l.net)}</b></td>
+        <td>${pastilleControle(l.controle)}${t.negociable && l.brut > 0 ? `<span class="petit">max. ${t.remises_max.banquier} / ${t.remises_max.directeur} / ${t.remises_max.comite} %</span>` : ""}</td></tr>`;
+    }).join("") + `<tr class="total"><td>Total annuel</td><td class="d">${eur2(s.total_brut)}</td><td></td><td class="d">${eur2(s.total_net)}</td><td></td></tr></tbody>`;
+  $("texte-demande").value = texteDemande(s);
+}
+
+function texteDemande(s) {
+  const lignes = s.lignes.filter((l) => l.remise_pct > 0);
+  if (!lignes.length) return "Aucune remise saisie : la facture est au prix grille, aucune validation n'est nécessaire.";
+  const niveau = s.lignes.some((l) => l.controle.statut === "hors_delegation") ? "Comité tarifaire (dérogation hors délégation)" : LIB_NIVEAU[s.niveau_requis] || "–";
+  return [
+    `Objet : demande de conditions tarifaires – ${profil.nom || "client"}`,
+    ``,
+    `Encours tarifé : ${eur(s.encours)}`,
+    `Facture annuelle au prix grille : ${eur2(s.total_brut)}`,
+    `Facture annuelle proposée : ${eur2(s.total_net)} (soit ${s.taux_global_pct != null ? pct(s.taux_global_pct) : "–"} de l'encours)`,
+    `Validation requise : ${niveau}`,
+    ``,
+    `Remises demandées :`,
+    ...lignes.map((l) => `- ${l.tarif_id} ${l.libelle} : ${pct(l.remise_pct, 0)} (${eur2(l.brut)} → ${eur2(l.net)}) – ${l.controle.message}`),
+    ``,
+    `Calcul : grille tarifaire au ${D.meta.date_effet}, données générées le ${D.meta.genere_le}.`,
+  ].join("\n");
+}
+
+$("s-lignes").addEventListener("change", (e) => {
+  const el = e.target; if (!el.dataset.tarif) return;
+  const v = Math.max(0, Math.min(100, +el.value || 0));
+  if (v) profil.remises[el.dataset.tarif] = v; else delete profil.remises[el.dataset.tarif];
+  rendreSimulation();
+  const nouveau = $("r-" + el.dataset.tarif); if (nouveau) nouveau.focus();
+});
+$("s-profil").addEventListener("change", (e) => chargerProfil(e.target.value));
+$("b-copier").addEventListener("click", () => {
+  const ta = $("texte-demande");
+  const ok = () => { $("copie-statut").textContent = "Demande copiée."; };
+  const repli = () => { ta.focus(); ta.select(); $("copie-statut").textContent = "Texte sélectionné : copiez-le avec Ctrl+C ou ⌘C."; };
+  try { navigator.clipboard.writeText(ta.value).then(ok, repli); } catch (_) { repli(); }
+});
+
+/* ---------- GRILLE ---------- */
+const FAMILLES = [...new Set(D.tarifs.map((t) => t.famille))];
+$("g-famille").innerHTML = `<option value="">Toutes les familles</option>` + FAMILLES.map((f) => `<option>${esc(f)}</option>`).join("");
+
+function prixAffiche(t) {
+  const bornes = [t.minimum != null ? `min. ${eur2(t.minimum)}` : "", t.maximum != null ? `max. ${eur2(t.maximum)}` : ""].filter(Boolean).join(" · ");
+  let p;
+  if (t.type_tarif === "fixe") p = eur2(t.valeur);
+  else if (t.type_tarif === "taux") p = pct(t.valeur, t.valeur < 0.1 ? 3 : 2) + (t.perf_pct ? ` + ${t.perf_pct} % de la perf.` : "");
+  else if (t.type_tarif === "taux_plus_fixe") p = `${pct(t.valeur)} + ${eur2(t.fixe_eur)}`;
+  else if (t.type_tarif === "bareme") p = `<a href="#bareme-${t.bareme_id}" data-bareme="${t.bareme_id}">Barème ${D.baremes[t.bareme_id].mode === "tranches" ? "par tranches" : "par palier"}</a>`;
+  else p = "Sur devis";
+  return p + (bornes ? `<span class="petit">${bornes}</span>` : "");
+}
+function plancherAffiche(t) {
+  if (!t.negociable) return "–";
+  const r = plafond(t);
+  if (t.type_tarif === "fixe") return eur2(t.valeur * (1 - r / 100));
+  if (t.type_tarif === "taux" || t.type_tarif === "taux_plus_fixe") return pct(t.valeur * (1 - r / 100), 3).replace(/0 %$/, " %");
+  return `−${r} %`;
+}
+
+function rendreGrille() {
+  const q = $("g-recherche").value.trim().toLowerCase(), fam = $("g-famille").value, nego = $("g-nego").checked, stock = $("g-stock").checked;
+  const lignes = D.tarifs.filter((t) => (!fam || t.famille === fam) && (!nego || t.negociable) && (stock || t.statut === "commercialise")
+    && (!q || `${t.id} ${t.libelle} ${t.rubrique} ${t.famille} ${t.note}`.toLowerCase().includes(q)));
+  $("g-compte").textContent = `${lignes.length} tarif${lignes.length > 1 ? "s" : ""} affiché${lignes.length > 1 ? "s" : ""} sur ${D.tarifs.length}.`;
+  $("g-table").innerHTML = `<thead><tr><th>ID</th><th>Libellé</th><th>Prix grille</th><th>Périodicité</th><th>Remise max. ${DELEG.map((d) => d.libelle.split(" ")[0].toLowerCase()).join(" / ")}</th><th class="d">Plancher</th><th class="d">Page</th></tr></thead><tbody>` +
+    (lignes.map((t) => `<tr><td class="id">${t.id}</td><td>${esc(t.libelle)}<span class="petit">${esc(t.famille)} › ${esc(t.rubrique)}${t.statut === "stock" ? " · contrats existants" : ""}${t.note ? " · " + esc(t.note) : ""}</span></td>
+      <td class="num">${prixAffiche(t)}</td><td>${PERIODES[t.periodicite]}</td>
+      <td>${t.negociable ? `<span class="num">${DELEG.map((d) => t.remises_max[d.code]).join(" / ")} %</span>` : `<span class="pastille verrou" title="${esc(t.motif_verrou)}">Verrouillé</span><span class="petit">${esc(t.motif_verrou)}</span>`}</td>
+      <td class="d">${plancherAffiche(t)}</td><td class="d">${t.page}</td></tr>`).join("") || `<tr><td colspan="7">Aucun tarif ne correspond. Élargissez la recherche ou retirez un filtre.</td></tr>`) + `</tbody>`;
+}
+["g-recherche", "g-famille", "g-nego", "g-stock"].forEach((id) => $(id).addEventListener("input", rendreGrille));
+$("g-table").addEventListener("click", (e) => {
+  const a = e.target.closest("a[data-bareme]"); if (!a) return;
+  e.preventDefault(); $("bareme-" + a.dataset.bareme).scrollIntoView({ behavior: "smooth", block: "center" });
+});
+const USAGE = {};
+D.tarifs.forEach((t) => { if (t.bareme_id) (USAGE[t.bareme_id] ??= []).push(t.id); });
+$("g-baremes").innerHTML = Object.values(D.baremes).map((b) => `<div class="bareme" id="bareme-${b.id}"><h4>${b.id}</h4><p>${b.mode === "tranches" ? "Par tranches" : "Par palier"} · p. ${b.page} · utilisé par ${(USAGE[b.id] || []).join(", ")}</p>
+  <table><tbody>${b.tranches.map((tr) => `<tr><td class="num">${tr.borne_sup == null ? `au-delà de ${eur(tr.borne_inf)}` : `${eur(tr.borne_inf)} → ${eur(tr.borne_sup)}`}</td><td class="d">${[tr.taux_pct != null ? pct(tr.taux_pct, tr.taux_pct < 0.1 ? 3 : 2) : "", tr.fixe_eur != null ? eur2(tr.fixe_eur) : "", tr.minimum_eur != null ? `min. ${eur2(tr.minimum_eur)}` : ""].filter(Boolean).join(" · ")}</td></tr>`).join("")}</tbody></table></div>`).join("");
+
+/* ---------- MÉTHODE ---------- */
+$("t-comparaison").innerHTML = `<thead><tr><th>Sujet</th><th>Classeur Excel</th><th>Grille de données + dashboard</th></tr></thead><tbody>` + [
+  ["Source de vérité", "Plusieurs copies du classeur circulent par mail", "Un seul fichier de grille, versionné"],
+  ["Saisie d'un prix", "Aucune vérification : une virgule ou une cellule écrasée passe inaperçue", "Contrôles automatiques avant toute publication"],
+  ["Marges de manœuvre", "Connues des seniors, rarement écrites", "Remise maximale par tarif et par niveau, appliquée au calcul"],
+  ["Facture d'un client", "Recopiée et recalculée à la main", "Calculée en direct, barèmes et plafonds PEA compris"],
+  ["Suivi des dérogations", "Consolidation manuelle en fin de trimestre", "Visible en continu, par centre et par niveau"],
+  ["Historique", "« grille_v7_final_DEF.xlsx »", "Chaque modification datée et attribuée"],
+  ["Compatibilité", "–", "L'export Excel est régénéré à chaque construction"],
+].map(([a, b, c]) => `<tr><td><b>${a}</b></td><td>${b}</td><td>${c}</td></tr>`).join("") + `</tbody>`;
+
+/* ---------- démarrage ---------- */
+construireFormulaire();
+chargerProfil(Object.keys(D.exemples)[0]);
+rendreGrille();
+rendrePilotage();
+afficher(location.hash.slice(1));
+</script>

@@ -1,0 +1,180 @@
+id,famille,rubrique,libelle,type_tarif,valeur,fixe_eur,perf_pct,unite,assiette,periodicite,minimum,maximum,bareme_id,canal,statut,page,negociable,remise_banquier_pct,remise_directeur_pct,remise_comite_pct,motif_verrou,note
+CPT-001,Compte et services,Tenue de compte,Tenue de compte inactif,fixe,30,,,EUR,,an,,,,tous,commercialise,5,non,,,,Plafond réglementaire (art. L.312-19 CMF),À concurrence du solde disponible
+CPT-002,Compte et services,Tenue de compte,Frais de recherche d'adresse manquante ou erronée,fixe,18,,,EUR,,operation,,,,tous,commercialise,5,oui,100,100,100,,
+CPT-003,Compte et services,Services en centre ou agence,Retrait d'espèces dans une autre agence,fixe,4.80,,,EUR,,operation,,,,agence,commercialise,6,oui,100,100,100,,
+CPT-004,Compte et services,Services en centre ou agence,Mise à disposition de fonds pour un tiers dans une autre agence,fixe,20.50,,,EUR,,operation,,,,agence,commercialise,6,oui,100,100,100,,
+CPT-005,Compte et services,Services en centre ou agence,Édition du RIB/IBAN par le banquier privé (après l'ouverture),fixe,3,,,EUR,,operation,,,,agence,commercialise,6,oui,100,100,100,,
+CPT-006,Compte et services,Recherche de documents,Duplicata de relevé de compte,fixe,13.50,,,EUR,,operation,,,,tous,commercialise,6,oui,100,100,100,,
+CPT-007,Compte et services,Recherche de documents,Recherche de document de moins d'un an,fixe,13.50,,,EUR,,operation,,,,tous,commercialise,6,oui,100,100,100,,
+CPT-008,Compte et services,Recherche de documents,Recherche de document de plus d'un an,fixe,29,,,EUR,,operation,,,,tous,commercialise,6,oui,100,100,100,,
+CPT-009,Compte et services,Recherche de documents,Photocopie supplémentaire,fixe,1,,,EUR,,operation,,,,tous,commercialise,6,oui,100,100,100,,
+CPT-010,Compte et services,Attestations,Attestation simple,fixe,20.50,,,EUR,,operation,,,,tous,commercialise,6,oui,100,100,100,,
+CPT-011,Compte et services,Attestations,Attestation complexe (sur mesure ou multi-comptes),fixe,41,,,EUR,,operation,,,,tous,commercialise,6,oui,100,100,100,,
+CPT-012,Compte et services,Coffre-fort,Location de coffre-fort option 1 (jusqu'à 35 dm3 et contenu ≤ 30 500 €),fixe,136,,,EUR,,an,,,,agence,commercialise,6,oui,20,50,100,,Options 2 et 3 sur devis
+CPT-013,Compte et services,Change,Commission sur achat/vente de billets en devises (montant < 760 €),fixe,4.50,,,EUR,,operation,,,,agence,commercialise,6,oui,100,100,100,,Gratuit au-delà de 760 €
+CPT-014,Compte et services,Change,Opération de change au comptant,bareme,,,,PCT,montant_operation,operation,18,,CHANGE_COMPTANT,tous,commercialise,6,oui,20,50,100,,0.50 ‰ jusqu'à 75 000 € puis 0.25 ‰ ; minimum 18 €
+BAD-001,Banque à distance,Alertes SMS,Forfait Alerte SMS (jusqu'à 15 SMS),fixe,2,,,EUR,,mois,,,,tous,commercialise,7,oui,100,100,100,,
+BAD-002,Banque à distance,Alertes SMS,SMS au-delà du forfait,fixe,0.20,,,EUR,,operation,,,,tous,commercialise,7,oui,100,100,100,,
+BAD-003,Banque à distance,Alertes SMS,Solde Messagerie Service,fixe,1,,,EUR,,mois,,,,tous,commercialise,7,oui,100,100,100,,
+CAR-001,Cartes,Cartes de paiement,Carte Visa Infinite,fixe,347,,,EUR,,an,,,,tous,commercialise,7,oui,50,100,100,,Incluse dans la commission forfaitaire Banque Privée
+CAR-002,Cartes,Cartes de paiement,Carte Visa Premier,fixe,144,,,EUR,,an,,,,tous,commercialise,7,oui,50,100,100,,Incluse dans la commission forfaitaire Banque Privée
+CAR-003,Cartes,Cartes de paiement,Carte Visa Classic,fixe,49.50,,,EUR,,an,,,,tous,commercialise,7,oui,50,100,100,,
+CAR-004,Cartes,Cartes de paiement,Carte BNP Net,fixe,52,,,EUR,,an,,,,tous,commercialise,7,oui,50,100,100,,
+CAR-005,Cartes,Cartes de paiement,Carte Origin,fixe,43.50,,,EUR,,an,,,,tous,commercialise,8,oui,50,100,100,,
+CAR-006,Cartes,Cartes de paiement,Carte virtuelle (paiement à autorisation systématique),fixe,24,,,EUR,,an,,,,tous,commercialise,8,oui,50,100,100,,Gratuite avec une Visa Infinite sur le même compte
+CAR-007,Cartes,Cartes de retrait,Carte Visa Plus,fixe,26,,,EUR,,an,,,,tous,commercialise,8,oui,50,100,100,,
+CAR-008,Cartes,Services complémentaires,Formule BNP Net (cartes Origin/Classic/Premier),fixe,26,,,EUR,,an,,,,tous,commercialise,8,oui,50,100,100,,Gratuite avec Visa Infinite
+CAR-009,Cartes,Services complémentaires,Cryptogramme dynamique (cartes Origin/Classic/Premier),fixe,13,,,EUR,,an,,,,tous,commercialise,8,oui,50,100,100,,Gratuit avec Visa Infinite
+CAR-010,Cartes,Services complémentaires,Visuel personnalisé « Catalogue »,fixe,13,,,EUR,,an,,,,tous,commercialise,8,oui,50,100,100,,
+CAR-011,Cartes,Services complémentaires,Option Travel (opérations en devises illimitées),fixe,10,,,EUR,,mois,,,,tous,commercialise,8,oui,50,100,100,,Gratuite pour les 18-24 ans
+CAR-012,Cartes,Opérations hors zone euro,Retrait DAB hors zone euro – Visa Infinite,taux_plus_fixe,2,2.20,,PCT,montant_operation,operation,,,,tous,commercialise,9,oui,0,50,100,,Sans frais via Global Network/Global Alliance/Option Travel
+CAR-013,Cartes,Opérations hors zone euro,Retrait DAB hors zone euro – autres cartes,taux_plus_fixe,2.90,3,,PCT,montant_operation,operation,,,,tous,commercialise,9,oui,0,50,100,,Sans frais via Global Network/Global Alliance/Option Travel
+CAR-014,Cartes,Opérations hors zone euro,Paiement carte hors zone euro – Visa Infinite,taux_plus_fixe,2,0.60,,PCT,montant_operation,operation,,,,tous,commercialise,9,oui,0,50,100,,
+CAR-015,Cartes,Opérations hors zone euro,Paiement carte hors zone euro – autres cartes,taux_plus_fixe,2.90,0.90,,PCT,montant_operation,operation,,,,tous,commercialise,9,oui,0,50,100,,
+CAR-016,Cartes,Retraits,Retrait DAB autre banque zone euro au-delà des retraits gratuits,fixe,1.20,,,EUR,,operation,,,,tous,commercialise,9,oui,100,100,100,,Illimité gratuit avec Infinite/Premier
+CAR-017,Cartes,Autres prestations,Réfection de carte avant échéance,fixe,15,,,EUR,,operation,,,,tous,commercialise,9,oui,100,100,100,,Gratuite pour Infinite/Premier/virtuelle
+CAR-018,Cartes,Autres prestations,Recherche de facturette ou justificatif de retrait,fixe,12.90,,,EUR,,operation,,,,tous,commercialise,9,oui,100,100,100,,
+VIR-001,Virements,SEPA,Virement SEPA occasionnel en centre/agence,fixe,5,,,EUR,,operation,,,,agence,commercialise,10,oui,100,100,100,,Gratuit en ligne
+VIR-002,Virements,SEPA,Mise en place d'un virement permanent en centre/agence,fixe,5,,,EUR,,operation,,,,agence,commercialise,10,oui,100,100,100,,Gratuit en ligne
+VIR-003,Virements,SEPA,Virement permanent exécuté (mis en place en centre/agence),fixe,1.50,,,EUR,,operation,,,,agence,commercialise,10,oui,100,100,100,,Gratuit en ligne
+VIR-004,Virements,SEPA,Option urgent sur virement SEPA,fixe,7,,,EUR,,operation,,,,agence,commercialise,10,oui,50,100,100,,
+VIR-005,Virements,SEPA,Demande de retour de fonds ou d'avis de sort,fixe,15,,,EUR,,operation,,,,tous,commercialise,10,oui,50,100,100,,
+VIR-006,Virements,Non SEPA,Virement non SEPA en ligne vers une filiale BNP Paribas,fixe,3,,,EUR,,operation,,,,en_ligne,commercialise,10,oui,50,100,100,,Gratuit si libellé dans la devise du pays du bénéficiaire
+VIR-007,Virements,Non SEPA,Virement non SEPA en ligne (autres banques),fixe,15,,,EUR,,operation,,,,en_ligne,commercialise,10,oui,50,100,100,,Gratuit si libellé dans la devise du pays du bénéficiaire
+VIR-008,Virements,Non SEPA,Virement non SEPA en centre/agence vers une filiale BNP Paribas,fixe,8,,,EUR,,operation,,,,agence,commercialise,10,oui,50,100,100,,
+VIR-009,Virements,Non SEPA,Virement non SEPA en centre/agence (autres banques),fixe,20,,,EUR,,operation,,,,agence,commercialise,10,oui,50,100,100,,
+VIR-010,Virements,Non SEPA,Commission si BIC/IBAN absent ou incorrect,fixe,12.90,,,EUR,,operation,,,,agence,commercialise,10,oui,50,100,100,,
+VIR-011,Virements,Non SEPA,Option sans frais pour le bénéficiaire (OUR),fixe,20.50,,,EUR,,operation,,,,tous,commercialise,10,oui,50,100,100,,
+VIR-012,Virements,Non SEPA,Option urgent sur virement non SEPA,fixe,7,,,EUR,,operation,,,,agence,commercialise,10,oui,50,100,100,,
+VIR-013,Virements,Non SEPA,Réception d'un virement non SEPA,fixe,11,,,EUR,,operation,,,,tous,commercialise,11,oui,50,100,100,,
+VIR-014,Virements,Non SEPA,Modification des instructions d'un virement non SEPA,fixe,12.90,,,EUR,,operation,,,,tous,commercialise,11,oui,50,100,100,,
+CHQ-001,Chèques,Chéquiers,Envoi de chéquier en recommandé (hors frais postaux),fixe,5,,,EUR,,operation,,,,tous,commercialise,11,oui,100,100,100,,
+CHQ-002,Chèques,Chéquiers,Destruction de chéquier non retiré sous 2 mois,fixe,6,,,EUR,,operation,,,,tous,commercialise,11,oui,100,100,100,,
+CHQ-003,Chèques,Chèques de banque,Émission d'un chèque de banque,fixe,15,,,EUR,,operation,,,,tous,commercialise,11,oui,100,100,100,,
+CHQ-004,Chèques,Oppositions,Opposition sur chèque en centre/agence,fixe,16,,,EUR,,operation,,,,agence,commercialise,11,oui,100,100,100,,Gratuite en ligne
+CHQ-005,Chèques,Oppositions,Opposition sur chéquier en centre/agence,fixe,16,,,EUR,,operation,,,,agence,commercialise,11,oui,100,100,100,,Gratuite en ligne
+CHQ-006,Chèques,Photocopies,Photocopie de chèque émis (≤ 1 an),fixe,12.90,,,EUR,,operation,,,,tous,commercialise,11,oui,100,100,100,,
+CHQ-007,Chèques,Photocopies,Photocopie de chèque émis (> 1 an),fixe,27,,,EUR,,operation,,,,tous,commercialise,11,oui,100,100,100,,
+CHQ-008,Chèques,International,Paiement d'un chèque sur une banque à l'étranger,bareme,,,,PCT,montant_operation,operation,,,CHQ_ETRANGER_PAIEMENT,tous,commercialise,11,oui,50,100,100,,10 % jusqu'à 150 € puis 1 ‰ (min. 27 €)
+CHQ-009,Chèques,International,Remise de chèque sur une banque à l'étranger (sans change),bareme,,,,PCT,montant_operation,operation,,60,CHQ_ETRANGER_REMISE,tous,commercialise,11,oui,50,100,100,,10 % jusqu'à 150 € puis 1 ‰ (min. 17.50 €) ; max. 60 € (110 € avec change)
+OFG-001,Offres groupées,Esprit Libre Référence,Esprit Libre Référence 25 ans et plus – carte Origin,fixe,7,,,EUR,,mois,,,,tous,commercialise,13,oui,0,50,100,,
+OFG-002,Offres groupées,Esprit Libre Référence,Esprit Libre Référence 25 ans et plus – Visa Classic,fixe,8,,,EUR,,mois,,,,tous,commercialise,13,oui,0,50,100,,
+OFG-003,Offres groupées,Esprit Libre Référence,Esprit Libre Référence 25 ans et plus – Visa Premier,fixe,16,,,EUR,,mois,,,,tous,commercialise,13,oui,0,50,100,,
+OFG-004,Offres groupées,Esprit Libre Référence,Esprit Libre Référence 25 ans et plus – Visa Infinite,fixe,32.65,,,EUR,,mois,,,,tous,commercialise,13,oui,0,50,100,,
+OFG-005,Offres groupées,Esprit Libre Référence,Esprit Libre Référence 18-24 ans – carte Origin,fixe,3.95,,,EUR,,mois,,,,tous,commercialise,13,oui,0,50,100,,
+OFG-006,Offres groupées,Esprit Libre Référence,Esprit Libre Référence 18-24 ans – Visa Classic,fixe,4.15,,,EUR,,mois,,,,tous,commercialise,13,oui,0,50,100,,
+OFG-007,Offres groupées,Esprit Libre Référence,Esprit Libre Référence 18-24 ans – Visa Premier,fixe,7.95,,,EUR,,mois,,,,tous,commercialise,13,oui,0,50,100,,
+INC-001,Irrégularités et incidents,Commission d'intervention,Commission d'intervention (plafond 10 opérations/mois),fixe,8,,,EUR,,operation,,80,,tous,commercialise,20,non,,,,Plafond réglementaire (8 €/opération et 80 €/mois),Exonération : geste commercial hors grille
+INC-002,Irrégularités et incidents,Opérations particulières,Frais par saisie-attribution ou saisie conservatoire,fixe,100,,,EUR,,operation,,,,tous,commercialise,20,non,,,,Frais d'incident : exonération traitée en geste commercial,
+INC-003,Irrégularités et incidents,Opérations particulières,Frais par saisie administrative à tiers détenteur,taux,10,,,PCT,montant_operation,operation,,100,,tous,commercialise,20,non,,,,Plafond légal (art. L.262 LPF),
+INC-004,Irrégularités et incidents,Opérations particulières,Lettre d'information pour compte débiteur non autorisé,fixe,20,,,EUR,,operation,,,,tous,commercialise,20,non,,,,Frais d'incident : exonération traitée en geste commercial,
+INC-005,Irrégularités et incidents,Opérations particulières,Notification Banque de France d'une interdiction d'émettre des chèques,fixe,33.50,,,EUR,,operation,,,,tous,commercialise,20,non,,,,Frais d'incident : exonération traitée en geste commercial,
+INC-006,Irrégularités et incidents,Chèques,Lettre d'information préalable pour chèque sans provision,fixe,14,,,EUR,,operation,,,,tous,commercialise,20,non,,,,Frais d'incident : exonération traitée en geste commercial,
+INC-007,Irrégularités et incidents,Chèques,Forfait chèque rejeté pour défaut de provision (≤ 50 €),fixe,30,,,EUR,,operation,,,,tous,commercialise,20,non,,,,Plafond réglementaire,
+INC-008,Irrégularités et incidents,Chèques,Forfait chèque rejeté pour défaut de provision (> 50 €),fixe,50,,,EUR,,operation,,,,tous,commercialise,20,non,,,,Plafond réglementaire,
+INC-009,Irrégularités et incidents,Chèques,Chèque remis revenu impayé (autre motif que sans provision),fixe,17.50,,,EUR,,operation,,,,tous,commercialise,20,non,,,,Frais d'incident : exonération traitée en geste commercial,
+INC-010,Irrégularités et incidents,Chèques,Chèque sur banque à l'étranger remis et revenu impayé,fixe,37,,,EUR,,operation,,,,tous,commercialise,20,non,,,,Frais d'incident : exonération traitée en geste commercial,
+INC-011,Irrégularités et incidents,Chèques,Demande de certificat de non-paiement,fixe,20,,,EUR,,operation,,,,tous,commercialise,20,non,,,,Frais d'incident : exonération traitée en geste commercial,
+INC-012,Irrégularités et incidents,Cartes,Déclaration Banque de France d'une décision de retrait de carte,fixe,25,,,EUR,,operation,,,,tous,commercialise,20,non,,,,Frais d'incident : exonération traitée en geste commercial,
+INC-013,Irrégularités et incidents,Prélèvements,Rejet de prélèvement pour défaut de provision (montant ≥ 20 €),fixe,20,,,EUR,,operation,,,,tous,commercialise,21,non,,,,Plafond réglementaire,Gratuit si montant < 20 €
+INC-014,Irrégularités et incidents,Virements,Non-exécution de virement permanent pour défaut de provision (≥ 20 €),fixe,20,,,EUR,,operation,,,,tous,commercialise,21,non,,,,Plafond réglementaire,Gratuit si montant < 20 €
+CRE-001,Découverts et crédits,Facilités de caisse,Facilité de caisse personnalisée – frais de dossier annuels,fixe,28,,,EUR,,an,,,,tous,commercialise,22,oui,50,100,100,,27 € dans le cadre d'Esprit Libre
+CRE-002,Découverts et crédits,Découvert,Autorisation de découvert – frais de mise en place,taux,1,,,PCT,montant_autorise,dossier,,,,tous,commercialise,22,oui,30,50,100,,
+CRE-003,Découverts et crédits,Crédits à la consommation,Prêt personnel souscrit en centre – frais de dossier,taux,1,,,PCT,montant_emprunte,dossier,79,,,agence,commercialise,22,oui,50,100,100,,Gratuit en ligne
+CRE-004,Découverts et crédits,Crédits à la consommation,Modification du quantième de remboursement,fixe,41,,,EUR,,operation,,,,tous,commercialise,23,oui,100,100,100,,Ou 0.25 % du capital restant dû selon le prêt
+CRE-005,Découverts et crédits,Crédits à la consommation,Réaménagement de dossier,fixe,36.50,,,EUR,,operation,,,,tous,commercialise,23,oui,100,100,100,,
+CRE-006,Découverts et crédits,Crédits à la consommation,Lettre de situation,fixe,16.10,,,EUR,,operation,,,,tous,commercialise,23,oui,100,100,100,,
+CRE-007,Découverts et crédits,Crédits immobiliers,Commission d'ouverture d'un prêt immobilier,taux,0.99,,,PCT,montant_emprunte,dossier,650,,,tous,commercialise,23,oui,30,50,100,,Réduction de 50 % pour une demande en ligne
+CRE-008,Découverts et crédits,Crédits immobiliers,Réaménagement des conditions financières du prêt,taux,2,,,PCT,capital_restant_du,dossier,630,2100,,tous,commercialise,23,oui,30,50,100,,
+CRE-009,Découverts et crédits,Crédits immobiliers,Autre réaménagement donnant lieu à avenant (dont portabilité),taux,1,,,PCT,capital_restant_du,dossier,300,900,,tous,commercialise,23,oui,30,50,100,,
+CRE-010,Découverts et crédits,Crédits immobiliers,Modification de la date de prélèvement,fixe,45,,,EUR,,operation,,,,tous,commercialise,23,oui,100,100,100,,
+CRE-011,Découverts et crédits,Crédits immobiliers,Réédition d'un tableau d'amortissement,fixe,33,,,EUR,,operation,,,,tous,commercialise,23,oui,100,100,100,,
+CRE-012,Découverts et crédits,Crédits immobiliers,Mainlevée d'hypothèque,fixe,56,,,EUR,,operation,,,,tous,commercialise,23,oui,50,100,100,,
+CRE-013,Découverts et crédits,Crédits immobiliers,Demande de décompte (prêts antérieurs au 01/07/2016),fixe,30,,,EUR,,operation,,,,tous,stock,23,oui,100,100,100,,Gratuit pour les prêts depuis le 01/07/2016
+CRE-014,Découverts et crédits,Crédits immobiliers,Convention de rechargement,fixe,50,,,EUR,,operation,,,,tous,commercialise,23,oui,50,100,100,,
+CBP-001,Convention Banque Privée,Commission forfaitaire,Commission forfaitaire annuelle (inclut Esprit Libre + Visa Infinite + Visa Premier),fixe,1000,,,EUR,,an,,,,tous,commercialise,25,oui,0,50,100,,Facturée en mars ; prorata la 1re année
+GSM-101,Gestion sous mandat,Titres et OPC – mandats souscrits depuis le 01/11/2026,Mandat Prudent – tout compris,taux,1.00,,,PCT,encours_gere,an,,,,tous,commercialise,29,oui,10,25,40,,Inclut intermédiation/souscriptions/droits de garde
+GSM-102,Gestion sous mandat,Titres et OPC – mandats souscrits depuis le 01/11/2026,Mandat Équilibré – tout compris,taux,1.20,,,PCT,encours_gere,an,,,,tous,commercialise,29,oui,10,25,40,,Inclut intermédiation/souscriptions/droits de garde
+GSM-103,Gestion sous mandat,Titres et OPC – mandats souscrits depuis le 01/11/2026,Mandat Dynamique – tout compris,taux,1.40,,,PCT,encours_gere,an,,,,tous,commercialise,29,oui,10,25,40,,Inclut intermédiation/souscriptions/droits de garde
+GSM-104,Gestion sous mandat,Titres et OPC – mandats souscrits depuis le 01/11/2026,Mandat Flexi Tendance – tout compris,taux,1.40,,,PCT,encours_gere,an,,,,tous,commercialise,29,oui,10,25,40,,Inclut intermédiation/souscriptions/droits de garde
+GSM-105,Gestion sous mandat,Titres et OPC – mandats souscrits depuis le 01/11/2026,Mandat Offensif – tout compris,taux,1.60,,,PCT,encours_gere,an,,,,tous,commercialise,29,oui,10,25,40,,Inclut intermédiation/souscriptions/droits de garde
+GSM-106,Gestion sous mandat,Titres et OPC – mandats souscrits depuis le 01/11/2026,Mandat Momentum Flexible 50-100 % actions – tout compris,taux,1.80,,,PCT,encours_gere,an,,,,tous,commercialise,29,oui,10,25,40,,Inclut intermédiation/souscriptions/droits de garde
+GSM-111,Gestion sous mandat,Titres et OPC – mandats souscrits depuis le 01/11/2026,Mandat Prudent – tout compris à la performance,taux,0.70,,5,PCT,encours_gere,an,,,,tous,commercialise,29,oui,10,25,40,,+ 5 % de la performance positive ; pas de commission de performance la 1re année
+GSM-112,Gestion sous mandat,Titres et OPC – mandats souscrits depuis le 01/11/2026,Mandat Équilibré – tout compris à la performance,taux,0.90,,5,PCT,encours_gere,an,,,,tous,commercialise,29,oui,10,25,40,,+ 5 % de la performance positive
+GSM-113,Gestion sous mandat,Titres et OPC – mandats souscrits depuis le 01/11/2026,Mandat Dynamique – tout compris à la performance,taux,1.00,,5,PCT,encours_gere,an,,,,tous,commercialise,29,oui,10,25,40,,+ 5 % de la performance positive
+GSM-114,Gestion sous mandat,Titres et OPC – mandats souscrits depuis le 01/11/2026,Mandat Flexi Tendance – tout compris à la performance,taux,1.00,,5,PCT,encours_gere,an,,,,tous,commercialise,29,oui,10,25,40,,+ 5 % de la performance positive
+GSM-115,Gestion sous mandat,Titres et OPC – mandats souscrits depuis le 01/11/2026,Mandat Offensif – tout compris à la performance,taux,1.20,,5,PCT,encours_gere,an,,,,tous,commercialise,29,oui,10,25,40,,+ 5 % de la performance positive
+GSM-116,Gestion sous mandat,Titres et OPC – mandats souscrits depuis le 01/11/2026,Mandat Momentum Flexible – tout compris à la performance,taux,1.40,,5,PCT,encours_gere,an,,,,tous,commercialise,29,oui,10,25,40,,+ 5 % de la performance positive
+GSM-001,Gestion sous mandat,Titres et OPC – mandats souscrits avant le 01/11/2026,Mandat Titres et OPC – option Standard,taux,0.80,,,PCT,encours_gere,an,,,,tous,stock,28,oui,10,25,40,,Hors frais de transaction et droits de garde
+GSM-002,Gestion sous mandat,Titres et OPC – mandats souscrits avant le 01/11/2026,Mandat Titres et OPC – option À la performance,taux,0.40,,5,PCT,encours_gere,an,,,,tous,stock,28,oui,10,25,40,,+ 5 % de la performance positive ; Équilibré/Dynamique/Offensif
+GSM-003,Gestion sous mandat,Titres et OPC – mandats souscrits avant le 01/11/2026,Mandat Momentum 100 % OPC – option Standard,taux,1.20,,,PCT,encours_gere,an,,,,tous,stock,28,oui,10,25,40,,
+GSM-004,Gestion sous mandat,Titres et OPC – mandats souscrits avant le 01/11/2026,Mandat Flexi Tendance 10 – tout compris,taux,1.60,,,PCT,encours_gere,an,,,,tous,stock,28,oui,10,25,40,,
+GSM-005,Gestion sous mandat,Titres et OPC – mandats souscrits avant le 01/11/2026,Frais de transaction sous mandat (Euronext Paris/Amsterdam/Bruxelles),taux_plus_fixe,1.44,9.60,,PCT,montant_operation,ordre,,,,tous,stock,28,oui,20,40,60,,Plafonné à 1.20 % en PEA
+GSM-006,Gestion sous mandat,Titres et OPC – mandats souscrits avant le 01/11/2026,Commission complémentaire sur souscription d'OPC externes,fixe,25,,,EUR,,ordre,,,,tous,stock,28,oui,50,100,100,,Plafonnée à 1.20 % en PEA dans la limite de 25 €
+GSA-001,Gestion sous mandat,Assurance – mandats d'arbitrage depuis le 24/10/2024,Orientation Sage / Sage confirmé – tout compris,taux,0.50,,,PCT,encours_gere,an,,,,tous,commercialise,30,oui,10,25,40,,Contrats BNP Paribas Cardif
+GSA-002,Gestion sous mandat,Assurance – mandats d'arbitrage depuis le 24/10/2024,Orientation Pondérée sécurisée / Pondérée ISR – tout compris,taux,0.70,,,PCT,encours_gere,an,,,,tous,commercialise,30,oui,10,25,40,,
+GSA-003,Gestion sous mandat,Assurance – mandats d'arbitrage depuis le 24/10/2024,Orientation Patrimoniale – tout compris,taux,0.70,,,PCT,encours_gere,an,,,,tous,commercialise,30,oui,10,25,40,,
+GSA-004,Gestion sous mandat,Assurance – mandats d'arbitrage depuis le 24/10/2024,Orientation Flexitendance / Résolue – tout compris,taux,0.90,,,PCT,encours_gere,an,,,,tous,commercialise,30,oui,10,25,40,,
+GSA-005,Gestion sous mandat,Assurance – mandats d'arbitrage depuis le 24/10/2024,Orientation Ambitieuse / Ambitieuse ISR – tout compris,taux,1.20,,,PCT,encours_gere,an,,,,tous,commercialise,30,oui,10,25,40,,
+GSA-006,Gestion sous mandat,Assurance – mandats d'arbitrage depuis le 24/10/2024,MyMand@te 3 – tout compris,taux,0.90,,,PCT,encours_gere,an,,,,tous,commercialise,30,oui,10,25,40,,
+GSA-007,Gestion sous mandat,Assurance – mandats d'arbitrage depuis le 24/10/2024,MyMand@te 4 – tout compris,taux,1.20,,,PCT,encours_gere,an,,,,tous,commercialise,30,oui,10,25,40,,
+GSA-008,Gestion sous mandat,Assurance – mandats d'arbitrage depuis le 24/10/2024,MyMand@te 5 – tout compris,taux,1.20,,,PCT,encours_gere,an,,,,tous,commercialise,30,oui,10,25,40,,
+GSA-011,Gestion sous mandat,Assurance – mandats d'arbitrage depuis le 24/10/2024,Orientation Flexitendance / Résolue – tout compris à la performance,taux,0.50,,5,PCT,encours_gere,an,,,,tous,commercialise,30,oui,10,25,40,,+ 5 % de la performance positive
+GSA-012,Gestion sous mandat,Assurance – mandats d'arbitrage depuis le 24/10/2024,Orientation Ambitieuse – tout compris à la performance,taux,0.70,,5,PCT,encours_gere,an,,,,tous,commercialise,30,oui,10,25,40,,+ 5 % de la performance positive
+GSA-013,Gestion sous mandat,Assurance – mandats d'arbitrage depuis le 24/10/2024,MyMand@te 4 – tout compris à la performance,taux,0.70,,5,PCT,encours_gere,an,,,,tous,commercialise,30,oui,10,25,40,,+ 5 % de la performance positive
+GSA-014,Gestion sous mandat,Assurance – mandats d'arbitrage depuis le 24/10/2024,MyMand@te 5 – tout compris à la performance,taux,0.70,,5,PCT,encours_gere,an,,,,tous,commercialise,30,oui,10,25,40,,+ 5 % de la performance positive
+GCO-001,Gestion conseillée,Instruments financiers,Convention de conseil – gestion conseillée,taux,0.40,,,PCT,encours_conseille,an,,,,tous,commercialise,33,oui,10,25,50,,
+GCO-002,Gestion conseillée,Instruments financiers,Convention de conseil – gestion conseillée active,taux,0.80,,,PCT,encours_conseille,an,,,,tous,commercialise,33,oui,10,25,50,,
+GCO-003,Gestion conseillée,Assurance,Convention de conseil assurance – gestion conseillée,taux,0.40,,,PCT,encours_conseille,an,,,,tous,commercialise,35,oui,10,25,50,,Contrats BNP Paribas Cardif
+GCO-004,Gestion conseillée,Assurance,Convention de conseil assurance – gestion conseillée active,taux,0.80,,,PCT,encours_conseille,an,,,,tous,commercialise,35,oui,10,25,50,,Contrats BNP Paribas Cardif
+BRS-001,Bourse et conservation,Frais de transaction en ligne,Ordre Euronext en ligne – offre Start,bareme,,,,PCT,montant_operation,ordre,,,BOURSE_START_WEB,en_ligne,commercialise,37,oui,20,40,60,,PEA : plafond 0.50 % du montant
+BRS-002,Bourse et conservation,Frais de transaction en ligne,Ordre Euronext en ligne – offre Active,bareme,,,,PCT,montant_operation,ordre,,,BOURSE_ACTIVE_WEB,en_ligne,commercialise,37,oui,20,40,60,,PEA : plafond 0.50 % du montant
+BRS-003,Bourse et conservation,Frais de transaction en ligne,Ordre en ligne sur marché étranger – États-Unis,taux,0.50,,,PCT,montant_operation,ordre,15,,,en_ligne,commercialise,37,oui,20,40,60,,Hors taxes locales et frais de change
+BRS-004,Bourse et conservation,Frais de transaction en ligne,Ordre en ligne sur marché étranger – Europe et Canada,taux,0.50,,,PCT,montant_operation,ordre,20,,,en_ligne,commercialise,37,oui,20,40,60,,Hors taxes locales et frais de change
+BRS-005,Bourse et conservation,Frais de transaction en ligne,Ordre en ligne sur marché étranger – Asie Pacifique,taux,0.50,,,PCT,montant_operation,ordre,50,,,en_ligne,commercialise,37,oui,20,40,60,,Hors taxes locales et frais de change
+BRS-006,Bourse et conservation,Frais de transaction en ligne,Ordre en ligne sur marché étranger – reste du monde,taux,0.50,,,PCT,montant_operation,ordre,100,,,en_ligne,commercialise,37,oui,20,40,60,,Hors taxes locales et frais de change
+BRS-007,Bourse et conservation,Frais de transaction en agence,Ordre Euronext en centre/agence ou par téléphone,taux_plus_fixe,1.20,8,,PCT,montant_operation,ordre,,,,agence,commercialise,37,oui,20,40,60,,PEA : plafond 1.20 % du montant
+BRS-008,Bourse et conservation,Frais de transaction en agence,Ordre en centre/agence sur marché étranger – États-Unis,taux_plus_fixe,1.20,15,,PCT,montant_operation,ordre,,,,agence,commercialise,37,oui,20,40,60,,
+BRS-009,Bourse et conservation,Frais de transaction en agence,Ordre en centre/agence sur marché étranger – Europe et Canada,taux_plus_fixe,1.20,20,,PCT,montant_operation,ordre,,,,agence,commercialise,37,oui,20,40,60,,
+BRS-010,Bourse et conservation,Droits de garde,Droits de garde – commission proportionnelle (barème par tranches),bareme,,,,PCT,valorisation,an,,,DROITS_GARDE,tous,commercialise,38,oui,20,50,100,,Valeurs du groupe BNP Paribas exonérées ; gratuit en offre Active si ≥ 50 ordres/an
+BRS-011,Bourse et conservation,Droits de garde,Droit fixe par ligne au porteur,fixe,5,,,EUR,,ligne,,,,tous,commercialise,38,oui,20,50,100,,
+BRS-012,Bourse et conservation,Droits de garde,Droit fixe par ligne au nominatif ou en dépôt à l'étranger,fixe,25,,,EUR,,ligne,,,,tous,commercialise,38,oui,20,50,100,,
+BRS-013,Bourse et conservation,Abonnements,Abonnement annuel offre Active,fixe,150,,,EUR,,an,,,,tous,commercialise,38,oui,50,100,100,,Gratuit si ≥ 50 ordres exécutés dans l'année
+BRS-014,Bourse et conservation,Autres services,Changement d'offre de Bourse au-delà du 1er par an,fixe,120,,,EUR,,operation,,,,tous,commercialise,39,oui,100,100,100,,
+BRS-015,Bourse et conservation,Autres services,Mise de valeur au nominatif,fixe,50,,,EUR,,ligne,,,,tous,commercialise,39,oui,50,100,100,,
+BRS-016,Bourse et conservation,Autres services,Dématérialisation de titres étrangers,fixe,150,,,EUR,,ligne,,,,tous,commercialise,39,oui,50,100,100,,
+BRS-017,Bourse et conservation,Autres services,Récupération de retenue à la source sur titres étrangers,fixe,25,,,EUR,,ligne,,,,tous,commercialise,39,oui,50,100,100,,
+BRS-018,Bourse et conservation,Autres services,Service Plus-Values (non-adhérent Panorama),fixe,75,,,EUR,,an,,,,tous,commercialise,39,oui,100,100,100,,Gratuit pour les adhérents Panorama
+BRS-019,Bourse et conservation,Tarification spécifique,Souscription ou cession de valeurs non cotées,taux,0.10,,,PCT,montant_operation,operation,150,,,tous,commercialise,38,oui,20,50,100,,
+BRS-020,Bourse et conservation,Transferts,Transfert de PEA/PEA-PME vers un autre établissement,fixe,15,,,EUR,,ligne,,150,,tous,commercialise,38,non,,,,Plafond réglementaire (15 €/ligne et 150 € max),
+BRS-021,Bourse et conservation,Transferts,Transfert de compte-titres vers un autre établissement – forfait,fixe,100,,,EUR,,operation,,,,tous,commercialise,38,oui,0,50,100,,+ 15 € par ligne (BRS-022)
+BRS-022,Bourse et conservation,Transferts,Transfert de compte-titres vers un autre établissement – par ligne,fixe,15,,,EUR,,ligne,,,,tous,commercialise,38,oui,0,50,100,,
+BRS-023,Bourse et conservation,OPC,Droits d'entrée OPC BNP Paribas (actions/obligations/OPCI) en ligne,taux,0.50,,,PCT,montant_operation,ordre,,,,en_ligne,commercialise,36,oui,50,100,100,,
+BRS-024,Bourse et conservation,OPC,Droits d'entrée OPC BNP Paribas (actions/obligations/OPCI) en agence,taux,1.20,,,PCT,montant_operation,ordre,,,,agence,commercialise,36,oui,50,100,100,,
+BRS-025,Bourse et conservation,OPC,Droits d'entrée SCPI,taux,8.93,,,PCT,montant_operation,ordre,,,,tous,commercialise,36,oui,20,40,60,,
+BRS-026,Bourse et conservation,OPC,Commission complémentaire sur souscription d'OPC externes,fixe,25,,,EUR,,ordre,,,,tous,commercialise,36,oui,50,100,100,,PEA : plafonnée à 1.2 % en agence dans la limite de 25 €
+BRS-027,Bourse et conservation,Or,Vente d'or en dépôt sur compte-titres,taux,2.50,,,PCT,montant_operation,ordre,40,,,tous,commercialise,40,oui,20,40,60,,+ commission de l'intermédiaire
+AVI-001,Assurance vie et PER,Frais sur versement,Frais sur versement – assurance vie et capitalisation (maximum),taux,2.75,,,PCT,montant_verse,operation,,,,tous,commercialise,39,oui,50,100,100,,Taux maximum : réduction usuelle en Banque Privée
+AVI-002,Assurance vie et PER,Frais sur versement,Frais sur versement – PER Multiplacements (maximum),taux,2.50,,,PCT,montant_verse,operation,,,,tous,commercialise,39,oui,50,100,100,,
+AVI-003,Assurance vie et PER,Arbitrages,Frais d'arbitrage (maximum),taux,1,,,PCT,montant_operation,operation,,,,tous,commercialise,39,oui,50,100,100,,Gratuits sous mandat tout compris
+ASS-001,Assurances,Moyens de paiement,BNP Paribas Sécurité,fixe,26.50,,,EUR,,an,,,,tous,commercialise,41,non,,,,Tarif assureur – hors délégation bancaire,
+ASS-002,Assurances,Moyens de paiement,BNP Paribas Sécurité Plus,fixe,36.50,,,EUR,,an,,,,tous,commercialise,41,non,,,,Tarif assureur – hors délégation bancaire,
+ASS-003,Assurances,Assurance de compte,Assurcompte,fixe,12,,,EUR,,an,,,,tous,commercialise,41,non,,,,Tarif assureur – hors délégation bancaire,
+ASS-004,Assurances,Assurance de compte,Assurcompte Plus,fixe,30.70,,,EUR,,an,,,,tous,commercialise,41,non,,,,Tarif assureur – hors délégation bancaire,
+ASS-005,Assurances,Habitation,Protection Investisseur Locatif (loyers et charges annuels),taux,2.7005,,,PCT,loyers_annuels,an,,,,tous,commercialise,40,non,,,,Tarif assureur – hors délégation bancaire,
+ASS-006,Assurances,Appareils nomades,Mobiléo – appareils nomades du foyer,fixe,12.90,,,EUR,,mois,,,,tous,commercialise,40,non,,,,Tarif assureur – hors délégation bancaire,
+EPA-001,Épargne,Épargne logement,Transfert d'épargne logement vers une autre banque,fixe,65,,,EUR,,operation,,,,tous,commercialise,36,oui,0,100,100,,
+EPA-002,Épargne,Épargne automatique,Cascade (épargne automatique),fixe,9.50,,,EUR,,an,,,,tous,commercialise,36,oui,100,100,100,,Incluse dans Esprit Libre
+SUC-001,Successions,Comptes et épargne,Frais de traitement de succession – comptes et épargne,taux,1,,,PCT,soldes_deces,dossier,,750,,tous,commercialise,44,non,,,,Plafond légal (art. L.312-1-4-1 CMF),Gratuit si soldes < 5 910 € ou succession simple
+SUC-002,Successions,Comptes-titres,Frais de traitement de succession – comptes-titres,taux,1,,,PCT,valorisation,dossier,,750,,tous,commercialise,44,non,,,,Plafond légal (art. L.312-1-4-1 CMF),Gratuit si avoirs < 5 910 €
+SUC-003,Successions,Comptes-titres,Transfert de compte-titres d'une succession vers un autre établissement,fixe,15,,,EUR,,ligne,,,,tous,commercialise,44,oui,0,50,100,,
+PAT-001,Prestations patrimoniales,Transmission,Donation associée à un contrat d'assurance vie,taux,0.50,,,PCT,montant_investi,dossier,500,5000,,tous,commercialise,45,oui,0,30,50,,Minimum 1 000 € avec administrateur ad hoc
+PAT-002,Prestations patrimoniales,Transmission,Contrat d'assurance vie ou de capitalisation démembré,taux,1,,,PCT,montant_investi,dossier,500,5000,,tous,commercialise,45,oui,0,30,50,,
+PAT-003,Prestations patrimoniales,Transmission,Convention de quasi-usufruit,fixe,500,,,EUR,,dossier,,,,tous,commercialise,45,oui,0,30,50,,
+PAT-004,Prestations patrimoniales,Financements,Financement de levée de stock-options – frais de dossier,taux,0.10,,,PCT,montant_finance,dossier,500,,,tous,commercialise,45,oui,0,30,50,,Taux Euribor 3 mois + 1.30 %
+PAT-005,Prestations patrimoniales,Financements,Donation avec transfert de charges – frais de dossier,taux_plus_fixe,0.12,1200,,PCT,montant_donation,dossier,,,,tous,commercialise,45,oui,0,30,50,,Doublés sur titres non cotés ou étrangers
+PAT-006,Prestations patrimoniales,Financements,Financement de la nue-propriété (immobilier professionnel démembré),taux_plus_fixe,1,300,,PCT,montant_finance,dossier,1000,2000,,tous,commercialise,46,oui,0,30,50,,
+PAT-007,Prestations patrimoniales,Financements,Financement de l'usufruit temporaire – frais de dossier,bareme,,,,PCT,montant_finance,dossier,130,,USUFRUIT_TEMP,tous,commercialise,46,oui,0,30,50,,
+PAT-008,Prestations patrimoniales,Garanties,Garantie bancaire – établissement de l'acte,taux,1,,,PCT,montant_garanti,dossier,110,,,tous,commercialise,46,oui,0,30,50,,Hors timbres fiscaux
+PAT-009,Prestations patrimoniales,Garanties,Garantie bancaire – commission annuelle (fourchette 1 % à 2.40 %),taux,2.40,,,PCT,montant_garanti,an,,,,tous,commercialise,46,oui,0,30,58.33,,Grille : haut de fourchette ; le comité peut descendre au bas de fourchette (1 %)
+PAT-010,Prestations patrimoniales,Transmission d'entreprise,Commission d'expertise – transmission d'entreprise,sur_devis,,,,EUR,,dossier,1000,50000,,tous,commercialise,46,oui,,,,,Devis du banquier privé entre 1 000 € et 50 000 €

@@ -1,0 +1,20 @@
+bareme_id,mode,borne_inf,borne_sup,taux_pct,fixe_eur,minimum_eur,page,libelle
+DROITS_GARDE,tranches,0,50000,0.40,,,38,Commission proportionnelle jusqu'à 50 000 €
+DROITS_GARDE,tranches,50000,150000,0.20,,,38,De plus de 50 000 € à 150 000 €
+DROITS_GARDE,tranches,150000,,0.10,,,38,Au-delà de 150 000 €
+BOURSE_START_WEB,palier,0,1000,,5,,37,5 € par ordre jusqu'à 1 000 € inclus
+BOURSE_START_WEB,palier,1000,3000,,10,,37,10 € par ordre de plus de 1 000 € à 3 000 € inclus
+BOURSE_START_WEB,palier,3000,50000,0.50,,,37,0.50 % par ordre de plus de 3 000 € à 50 000 € inclus
+BOURSE_START_WEB,palier,50000,,0.35,,,37,0.35 % par ordre de plus de 50 000 €
+BOURSE_ACTIVE_WEB,palier,0,3000,,5,,37,5 € par ordre jusqu'à 3 000 € inclus
+BOURSE_ACTIVE_WEB,palier,3000,50000,0.25,,,37,0.25 % par ordre de plus de 3 000 € à 50 000 € inclus
+BOURSE_ACTIVE_WEB,palier,50000,,0.10,,,37,0.10 % par ordre de plus de 50 000 €
+CHANGE_COMPTANT,tranches,0,75000,0.05,,,6,0.50 ‰ sur la tranche jusqu'à 75 000 €
+CHANGE_COMPTANT,tranches,75000,,0.025,,,6,0.25 ‰ au-delà de 75 000 €
+CHQ_ETRANGER_PAIEMENT,palier,0,150,10,,,11,10 % du montant pour un chèque ≤ 150 €
+CHQ_ETRANGER_PAIEMENT,palier,150,,0.10,,27,11,1 ‰ du montant (minimum 27 €) au-delà de 150 €
+CHQ_ETRANGER_REMISE,palier,0,150,10,,,11,10 % du montant pour un chèque ≤ 150 €
+CHQ_ETRANGER_REMISE,palier,150,,0.10,,17.50,11,1 ‰ du montant (minimum 17.50 €) au-delà de 150 €
+USUFRUIT_TEMP,tranches,0,50000,1,,,46,1 % jusqu'à 50 000 €
+USUFRUIT_TEMP,tranches,50000,150000,0.50,,,46,0.50 % de plus de 50 000 € à 150 000 €
+USUFRUIT_TEMP,tranches,150000,,0.40,,,46,0.40 % au-delà de 150 000 €
