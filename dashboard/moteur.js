@@ -1,5 +1,5 @@
 /* Moteur de calcul côté navigateur : miroir de tarification/calcul.py et simulation.py.
-   La parité avec Python est vérifiée par tests/parite.mjs sur tout le portefeuille fictif. */
+   La parité avec Python est vérifiée par tests/parite.cjs sur tout le portefeuille fictif. */
 (function (racine) {
   "use strict";
 
@@ -53,7 +53,8 @@
     }
 
     function controlerRemise(t, r) {
-      if (r <= 0) return { statut: "grille", niveau: null, message: "Prix grille" };
+      if (r < 0) return { statut: "invalide", niveau: null, message: "Remise négative : non appliquée" };
+      if (r === 0) return { statut: "grille", niveau: null, message: "Prix grille" };
       if (!t.negociable) return { statut: "verrouille", niveau: null, message: "Non négociable : " + t.motif_verrou };
       for (const d of delegations) {
         if (r <= t.remises_max[d.code] + 1e-9)
@@ -66,17 +67,19 @@
     function simuler(profil) {
       const remises = profil.remises || {};
       const lignes = [];
+      let poste = ""; // poste en cours (POSTES de simulation.py), attribué aux lignes ajoutées
       const ajouter = (id, detail, brutTotal, quantite = 1) => {
         const t = tarif(id);
         const r = remises[id] || 0;
-        const rApp = t.negociable ? Math.min(r, 100) : 0;
+        const rApp = t.negociable && r >= 0 ? Math.min(r, 100) : 0;
         lignes.push({
           tarif_id: t.id, famille: t.famille, libelle: t.libelle, detail, quantite,
           brut: arrondi(brutTotal), remise_pct: r, net: arrondi(brutTotal * (1 - rApp / 100)),
-          controle: controlerRemise(t, r), page: t.page,
+          controle: controlerRemise(t, r), page: t.page, poste,
         });
       };
       const convention = !!profil.convention_bp;
+      poste = "relation";
       if (convention) ajouter("CBP-001", "Forfait annuel", prixBrut(tarif("CBP-001")));
 
       let cartes = [...(profil.cartes || [])];
@@ -90,6 +93,7 @@
         } else ajouter(c, "Cotisation annuelle", prix);
       });
 
+      poste = "mandat_titres";
       const m1 = profil.mandat_titres;
       if (m1 && m1.encours) {
         const t = tarif(m1.offre);
@@ -98,6 +102,7 @@
         if (t.perf_pct) detail += perf > 0 ? ` + ${g(t.perf_pct)} % de la performance (${pct(perf)})` : " (pas de commission de performance)";
         ajouter(t.id, detail, prixBrut(t, m1.encours, perf));
       }
+      poste = "mandat_assurance";
       const m2 = profil.mandat_assurance;
       if (m2 && m2.encours) {
         const t = tarif(m2.offre);
@@ -106,12 +111,14 @@
         if (t.perf_pct && perf > 0) detail += ` + ${g(t.perf_pct)} % de la performance (${pct(perf)})`;
         ajouter(t.id, detail, prixBrut(t, m2.encours, perf));
       }
+      poste = "conseil";
       const m3 = profil.conseil;
       if (m3 && m3.encours) {
         const t = tarif(m3.offre);
         ajouter(t.id, `${eur(m3.encours)} × ${pct(t.valeur)}`, prixBrut(t, m3.encours));
       }
 
+      poste = "compte_titres";
       const ct = profil.compte_titres;
       if (ct && ct.valorisation) {
         const pea = ct.enveloppe === "PEA";
@@ -119,20 +126,40 @@
         const nbOrdres = (ct.ordres_en_ligne || 0) + (ct.ordres_agence || 0);
         const seuil = regles.offre_active_seuil_ordres_gratuite;
         const gratuite = active && nbOrdres >= seuil;
-        if (gratuite) ajouter("BRS-010", `Offerts : ${nbOrdres} ordres ≥ ${seuil}`, 0);
-        else {
-          ajouter("BRS-010", `Barème par tranches sur ${eur(ct.valorisation)}`, prixBrut(tarif("BRS-010"), ct.valorisation));
-          let n = ct.lignes_porteur || 0;
-          if (n) ajouter("BRS-011", `${n} lignes × 5 €`, n * tarif("BRS-011").valeur, n);
-          n = ct.lignes_nominatif || 0;
-          if (n) {
-            let u = tarif("BRS-012").valeur;
-            const plaf = pea && u > regles.pea_plafond_garde_par_ligne_eur;
-            if (plaf) u = regles.pea_plafond_garde_par_ligne_eur;
-            ajouter("BRS-012", `${n} lignes × ${g(u)} €` + (plaf ? " (plafond PEA)" : ""), n * u, n);
+        if (gratuite) {
+          ajouter("BRS-010", `Offerts : ${nbOrdres} ordres ≥ ${seuil}`, 0);
+          ajouter("BRS-013", `Offert (≥ ${seuil} ordres)`, 0);
+        } else {
+          let proportionnel = prixBrut(tarif("BRS-010"), ct.valorisation);
+          const nPorteur = ct.lignes_porteur || 0;
+          const uPorteur = tarif("BRS-011").valeur;
+          const nNominatif = ct.lignes_nominatif || 0;
+          let uNominatif = tarif("BRS-012").valeur;
+          const nominatifPlaf = pea && uNominatif > regles.pea_plafond_garde_par_ligne_eur;
+          if (nominatifPlaf) uNominatif = regles.pea_plafond_garde_par_ligne_eur;
+          let abonnement = active ? tarif("BRS-013").valeur : 0;
+          // PEA : garde + frais de gestion plafonnés ensemble (0,40 % + 5 €/ligne, p. 38) ; excédent retiré de l'abonnement puis du proportionnel
+          let abonnementPlaf = false, proportionnelPlaf = false;
+          if (pea) {
+            const plafond = (ct.valorisation * regles.pea_plafond_garde_pct) / 100
+              + (nPorteur + nNominatif) * regles.pea_plafond_garde_par_ligne_eur;
+            let exces = proportionnel + nPorteur * uPorteur + nNominatif * uNominatif + abonnement - plafond;
+            if (exces > 0.005 && abonnement > 0) {
+              const retrait = Math.min(exces, abonnement);
+              abonnement -= retrait;
+              exces -= retrait;
+              abonnementPlaf = true;
+            }
+            if (exces > 0.005) {
+              proportionnel = Math.max(proportionnel - exces, 0);
+              proportionnelPlaf = true;
+            }
           }
+          ajouter("BRS-010", `Barème par tranches sur ${eur(ct.valorisation)}` + (proportionnelPlaf ? " (plafond PEA)" : ""), proportionnel);
+          if (nPorteur) ajouter("BRS-011", `${nPorteur} lignes × ${g(uPorteur)} €`, nPorteur * uPorteur, nPorteur);
+          if (nNominatif) ajouter("BRS-012", `${nNominatif} lignes × ${g(uNominatif)} €` + (nominatifPlaf ? " (plafond PEA)" : ""), nNominatif * uNominatif, nNominatif);
+          if (active) ajouter("BRS-013", "Abonnement annuel" + (abonnementPlaf ? " (plafond PEA)" : ""), abonnement);
         }
-        if (active) ajouter("BRS-013", gratuite ? "Offert (≥ 50 ordres)" : "Abonnement annuel", gratuite ? 0 : tarif("BRS-013").valeur);
         let n = ct.ordres_en_ligne || 0;
         if (n) {
           const id = active ? "BRS-002" : "BRS-001";
@@ -154,10 +181,12 @@
         }
       }
 
+      poste = "versements";
       for (const [cle, id] of [["versements_av", "AVI-001"], ["versements_per", "AVI-002"]]) {
         const montant = profil[cle] || 0;
         if (montant) { const t = tarif(id); ajouter(id, `${eur(montant)} versés × ${pct(t.valeur)}`, prixBrut(t, montant)); }
       }
+      poste = "flux";
       for (const [cle, id] of [["virements_non_sepa_en_ligne", "VIR-007"], ["virements_non_sepa_agence", "VIR-009"]]) {
         const n = profil[cle] || 0;
         if (n) { const t = tarif(id); ajouter(id, `${n} virements × ${g(t.valeur)} €`, n * t.valeur, n); }
@@ -169,11 +198,12 @@
         const t = tarif(id);
         ajouter(id, `${eur(dep)} en ${nb} paiements : ${pct(t.valeur)} + ${deux(t.fixe_eur)} €/paiement`, (dep * t.valeur) / 100 + nb * t.fixe_eur, nb);
       }
+      poste = "services";
       if (profil.coffre) ajouter("CPT-012", "Cotisation annuelle", tarif("CPT-012").valeur);
       const nAtt = profil.attestations || 0;
       if (nAtt) ajouter("CPT-010", `${nAtt} attestations`, nAtt * tarif("CPT-010").valeur, nAtt);
       const immo = profil.credit_immo || 0;
-      if (immo) { const t = tarif("CRE-007"); ajouter("CRE-007", `${eur(immo)} × ${pct(t.valeur)} (min. 650 €)`, prixBrut(t, immo)); }
+      if (immo) { const t = tarif("CRE-007"); ajouter("CRE-007", `${eur(immo)} × ${pct(t.valeur)}` + (t.minimum != null ? ` (min. ${g(t.minimum)} €)` : ""), prixBrut(t, immo)); }
       for (const [id, n] of Object.entries(profil.incidents || {})) {
         if (n) { const t = tarif(id); ajouter(id, `${n} × ${g(t.valeur)} €`, n * t.valeur, n); }
       }
@@ -189,7 +219,7 @@
         lignes, total_brut: totalBrut, total_net: totalNet, remise_totale: arrondi(totalBrut - totalNet), encours,
         taux_global_pct: encours ? Math.round((totalNet / encours) * 100 * 1e4) / 1e4 : null,
         niveau_requis: niveauRequis,
-        alertes: lignes.filter((l) => l.controle.statut === "hors_delegation" || l.controle.statut === "verrouille").length,
+        alertes: lignes.filter((l) => ["hors_delegation", "verrouille", "invalide"].includes(l.controle.statut)).length,
       };
     }
 

@@ -77,6 +77,7 @@ nav.onglets button:hover { color: var(--ink); }
 
 main { padding-block: 24px 56px; }
 .vue { display: grid; gap: 22px; }
+.vue[hidden] { display: none; }
 .bandeau-vue { display: flex; flex-wrap: wrap; align-items: end; justify-content: space-between; gap: 12px 24px; }
 .bandeau-vue h2 { font-size: 24px; font-weight: 700; font-stretch: 90%; }
 .bandeau-vue p { margin: 4px 0 0; color: var(--ink-2); max-width: 68ch; }
@@ -134,8 +135,18 @@ td.d, th.d { text-align: right; font-variant-numeric: tabular-nums; white-space:
 td .petit { display: block; font-size: 12.5px; color: var(--ink-3); }
 .id { font-family: var(--f-code); font-size: 12.5px; color: var(--ink-2); white-space: nowrap; }
 tr.total td { font-weight: 700; border-top: 2px solid var(--ink); border-bottom: 0; background: none; }
+/* Facture du simulateur : un bloc par contrat, séparé du précédent par un espace, avec son sous-total en tête */
+tbody.bloc + tbody.bloc tr.tete-bloc td { border-top: 14px solid var(--surface); }
+tr.tete-bloc td, tbody tr.tete-bloc:hover td { background: var(--surface-2); font-variant-numeric: tabular-nums; }
+tr.tete-bloc .titre-bloc { font-family: var(--f-titre); font-weight: 700; font-size: 15px; }
 td input.remise { width: 70px; text-align: right; padding: 4px 6px; border: 1px solid var(--rule); border-radius: 4px; background: var(--surface); font-variant-numeric: tabular-nums; }
 td input.remise:disabled { background: var(--surface-2); color: var(--ink-3); }
+/* Curseur de remise : la piste est découpée aux plafonds de chaque délégation (--piste, posé par ligne) */
+td input.curseur { -webkit-appearance: none; appearance: none; display: block; width: 100%; min-width: 130px; height: 18px; margin: 6px 0 0; background: none; cursor: pointer; }
+td input.curseur::-webkit-slider-runnable-track { height: 6px; border-radius: 3px; background: var(--piste); }
+td input.curseur::-moz-range-track { height: 6px; border-radius: 3px; background: var(--piste); }
+td input.curseur::-webkit-slider-thumb { -webkit-appearance: none; box-sizing: border-box; width: 16px; height: 16px; margin-top: -5px; border-radius: 50%; background: var(--surface); border: 2px solid var(--ink); box-shadow: var(--ombre); }
+td input.curseur::-moz-range-thumb { box-sizing: border-box; width: 16px; height: 16px; border-radius: 50%; background: var(--surface); border: 2px solid var(--ink); box-shadow: var(--ombre); }
 tr.en-alerte td { background: var(--critique-soft); }
 tr.cliquable { cursor: pointer; }
 
@@ -272,7 +283,7 @@ pre.cmd { margin: 0; background: var(--surface-2); border: 1px solid var(--rule)
       <div class="bandeau-vue">
         <div>
           <h2>Facture annuelle d'un client</h2>
-          <p>Choisissez un profil d'exemple ou modifiez les encours, puis saisissez une remise sur une ligne : le niveau de validation requis s'affiche immédiatement.</p>
+          <p>Choisissez un profil d'exemple ou modifiez les encours, puis saisissez une remise sur une ligne ou faites glisser son curseur : le niveau de validation requis s'affiche immédiatement.</p>
         </div>
         <label class="champ" style="min-width:260px"><span>Profil d'exemple</span>
           <select id="s-profil"></select>
@@ -284,6 +295,7 @@ pre.cmd { margin: 0; background: var(--surface-2); border: 1px solid var(--rule)
           <div class="synthese" id="s-synthese"></div>
           <div id="s-alerte"></div>
           <div class="panneau" style="padding:6px 8px">
+            <div class="legende" id="s-legende" style="margin:6px 8px 2px"></div>
             <div class="defile"><table id="s-lignes"></table></div>
           </div>
           <div class="panneau">
@@ -412,6 +424,7 @@ function pastilleControle(c) {
   if (c.statut === "grille") return `<span class="pastille grille">Prix grille</span>`;
   if (c.statut === "dans_delegation") return `<span class="pastille ${c.niveau}">${esc(LIB_NIVEAU[c.niveau])}</span>`;
   if (c.statut === "verrouille") return `<span class="pastille verrou" title="${esc(c.message)}">Verrouillé</span>`;
+  if (c.statut === "invalide") return `<span class="pastille verrou" title="${esc(c.message)}">Remise invalide</span>`;
   return `<span class="pastille hors" title="${esc(c.message)}">Hors délégation</span>`;
 }
 function plafond(t) { return Math.max(...Object.values(t.remises_max)); }
@@ -666,12 +679,91 @@ function chargerProfil(cle) {
   rendreSimulation();
 }
 
-function rendreSimulation() {
+const EN_ALERTE = ["hors_delegation", "verrouille", "invalide"];
+function simulerProfil() {
   const p = { ...profil };
   for (const k of ["mandat_titres", "mandat_assurance", "conseil"]) if (!p[k] || !p[k].offre) delete p[k];
-  const s = M.simuler(p);
-  const niveau = s.lignes.some((l) => l.controle.statut === "hors_delegation") ? `<span class="pastille hors">Hors délégation</span>`
-    : s.niveau_requis ? `<span class="pastille ${s.niveau_requis}">${esc(LIB_NIVEAU[s.niveau_requis])}</span>` : `<span class="pastille grille">Aucune</span>`;
+  return M.simuler(p);
+}
+// Zones de la piste : une couleur par délégation jusqu'à son plafond, puis hors délégation
+function piste(t) {
+  let debut = 0;
+  const zones = DELEG.map((d, i) => { const z = `var(--niv-${i + 1}) ${debut}% ${t.remises_max[d.code]}%`; debut = t.remises_max[d.code]; return z; });
+  return `linear-gradient(to right, ${zones.join(", ")}, var(--critique) ${debut}% 100%)`;
+}
+const texteCurseur = (l) => `${l.remise_pct || 0} % : ${l.controle.statut === "dans_delegation" ? LIB_NIVEAU[l.controle.niveau] : l.controle.message}`;
+const celluleValidation = (l, t) => pastilleControle(l.controle) +
+  (t.negociable && l.brut > 0 ? `<span class="petit">max. ${t.remises_max.banquier} / ${t.remises_max.directeur} / ${t.remises_max.comite} %</span>` : "");
+
+// Niveau de validation d'un ensemble de lignes : hors délégation dès qu'une ligne l'est, sinon la plus haute délégation
+function pastilleNiveau(lignes) {
+  if (lignes.some((l) => l.controle.statut === "hors_delegation")) return `<span class="pastille hors">Hors délégation</span>`;
+  const rang = Math.max(-1, ...lignes.map((l) => DELEG.findIndex((d) => d.code === l.controle.niveau)));
+  return rang >= 0 ? `<span class="pastille ${DELEG[rang].code}">${esc(DELEG[rang].libelle)}</span>` : `<span class="pastille grille">Aucune</span>`;
+}
+
+// Facture découpée contrat par contrat (postes du moteur) : [[poste, [[ligne, rang dans s.lignes]…]]…]
+const parPoste = (s) => Object.keys(D.postes)
+  .map((k) => [k, s.lignes.map((l, i) => [l, i]).filter(([l]) => l.poste === k)])
+  .filter(([, ls]) => ls.length);
+// Assiette d'un poste, pour exprimer son coût en % : encours du mandat ou valorisation du compte-titres
+const ASSIETTE_POSTE = { mandat_titres: "encours", mandat_assurance: "encours", conseil: "encours", compte_titres: "valorisation" };
+
+function enteteBloc(k, lignes) {
+  const brut = lignes.reduce((x, l) => x + l.brut, 0), net = lignes.reduce((x, l) => x + l.net, 0);
+  const remise = brut - net > 0.005;
+  const assiette = ASSIETTE_POSTE[k] && (profil[k] || {})[ASSIETTE_POSTE[k]];
+  const taux = assiette ? `${pct((net / assiette) * 100)} net sur ${keur(assiette)}` + (remise ? ` · grille ${pct((brut / assiette) * 100)}` : "") : "";
+  return `<td><span class="titre-bloc">${esc(D.postes[k])}</span>${taux ? `<span class="petit">${taux}</span>` : ""}</td>
+    <td class="d">${eur2(brut)}</td>
+    <td class="d">${remise ? `−${eur2(brut - net)}` : ""}</td>
+    <td class="d"><b>${eur2(net)}</b></td>
+    <td>${lignes.some((l) => l.remise_pct > 0) ? pastilleNiveau(lignes) : ""}</td>`;
+}
+
+function ligneHtml(l, i) {
+  const t = M.tarif(l.tarif_id);
+  const curseur = t.negociable && l.brut > 0
+    ? `<input class="curseur" type="range" min="0" max="100" step="1" data-tarif="${l.tarif_id}" value="${Math.max(l.remise_pct || 0, 0)}" style="--piste:${piste(t)}" aria-label="Curseur de remise sur ${esc(l.libelle)}" aria-valuetext="${esc(texteCurseur(l))}">` : "";
+  return `<tr data-i="${i}" class="${EN_ALERTE.includes(l.controle.statut) ? "en-alerte" : ""}"><td><span class="id">${l.tarif_id}</span> ${esc(l.libelle)}<span class="petit">${esc(l.detail)} · p. ${l.page}</span></td>
+    <td class="d">${eur2(l.brut)}</td>
+    <td class="d"><input class="remise" type="number" min="0" max="100" step="1" id="r-${l.tarif_id}" data-tarif="${l.tarif_id}" value="${l.remise_pct || ""}" placeholder="0" aria-label="Remise en % sur ${esc(l.libelle)}" ${l.brut === 0 ? "disabled" : ""}> %${curseur}</td>
+    <td class="d"><b>${eur2(l.net)}</b></td>
+    <td>${celluleValidation(l, t)}</td></tr>`;
+}
+
+const ligneTotal = (s) => `<td>Total annuel</td><td class="d">${eur2(s.total_brut)}</td>
+  <td class="d">${s.remise_totale > 0 ? `−${eur2(s.remise_totale)}` : ""}</td><td class="d">${eur2(s.total_net)}</td><td></td>`;
+
+function rendreSimulation() {
+  const s = simulerProfil();
+  rendreBilan(s);
+  $("s-lignes").innerHTML = `<thead><tr><th>Tarif</th><th class="d">Prix grille</th><th class="d">Remise</th><th class="d">Net</th><th>Validation</th></tr></thead>` +
+    parPoste(s).map(([k, ls]) => `<tbody class="bloc"><tr class="tete-bloc" data-poste="${k}">${enteteBloc(k, ls.map(([l]) => l))}</tr>${ls.map(([l, i]) => ligneHtml(l, i)).join("")}</tbody>`).join("") +
+    `<tbody><tr class="total">${ligneTotal(s)}</tr></tbody>`;
+}
+
+// Pendant le glissement d'un curseur : mise à jour sur place, sans reconstruire le tableau (le curseur serait recréé
+// en plein geste). Les lignes ne dépendent que du profil, pas des remises : elles gardent leur rang.
+function actualiserRemises() {
+  const s = simulerProfil();
+  const table = $("s-lignes");
+  s.lignes.forEach((l, i) => {
+    const tr = table.querySelector(`tr[data-i="${i}"]`), t = M.tarif(l.tarif_id);
+    tr.classList.toggle("en-alerte", EN_ALERTE.includes(l.controle.statut));
+    tr.querySelector("input.remise").value = l.remise_pct || "";
+    const c = tr.querySelector("input.curseur");
+    if (c) { c.value = Math.max(l.remise_pct || 0, 0); c.setAttribute("aria-valuetext", texteCurseur(l)); }
+    tr.cells[3].innerHTML = `<b>${eur2(l.net)}</b>`;
+    tr.cells[4].innerHTML = celluleValidation(l, t);
+  });
+  for (const [k, ls] of parPoste(s)) table.querySelector(`tr[data-poste="${k}"]`).innerHTML = enteteBloc(k, ls.map(([l]) => l));
+  table.querySelector("tr.total").innerHTML = ligneTotal(s);
+  rendreBilan(s);
+}
+
+function rendreBilan(s) {
+  const niveau = pastilleNiveau(s.lignes);
   $("s-synthese").innerHTML = `
     <div><span class="lib">Facture au prix grille</span><span class="val">${eur(s.total_brut)}</span></div>
     <div><span class="lib">Facture négociée</span><span class="val">${eur(s.total_net)}</span><span class="note">${s.remise_totale > 0 ? `−${eur(s.remise_totale)} de remises` : "Aucune remise"}</span></div>
@@ -679,17 +771,8 @@ function rendreSimulation() {
     <div><span class="lib">Validation requise</span><span style="padding-top:6px">${niveau}</span></div>`;
   const hors = s.lignes.filter((l) => l.controle.statut === "hors_delegation");
   const verr = s.lignes.filter((l) => l.controle.statut === "verrouille");
-  $("s-alerte").innerHTML = hors.length || verr.length ? `<div class="encart critique">${hors.map((l) => `<span><b>${l.tarif_id}</b> : remise de ${pct(l.remise_pct, 0)} au-delà du plafond de ${pct(plafond(M.tarif(l.tarif_id)), 0)}. Réduire la remise ou la présenter hors grille.</span>`).join("")}${verr.map((l) => `<span><b>${l.tarif_id}</b> : tarif non négociable (${esc(M.tarif(l.tarif_id).motif_verrou)}). La remise saisie n'est pas appliquée.</span>`).join("")}</div>` : "";
-  $("s-lignes").innerHTML = `<thead><tr><th>Tarif</th><th class="d">Prix grille</th><th class="d">Remise</th><th class="d">Net</th><th>Validation</th></tr></thead><tbody>` +
-    s.lignes.map((l) => {
-      const t = M.tarif(l.tarif_id);
-      const alerte = l.controle.statut === "hors_delegation" || l.controle.statut === "verrouille";
-      return `<tr class="${alerte ? "en-alerte" : ""}"><td><span class="id">${l.tarif_id}</span> ${esc(l.libelle)}<span class="petit">${esc(l.detail)} · p. ${l.page}</span></td>
-        <td class="d">${eur2(l.brut)}</td>
-        <td class="d"><input class="remise" type="number" min="0" max="100" step="1" id="r-${l.tarif_id}" data-tarif="${l.tarif_id}" value="${l.remise_pct || ""}" placeholder="0" aria-label="Remise en % sur ${esc(l.libelle)}" ${l.brut === 0 ? "disabled" : ""}> %</td>
-        <td class="d"><b>${eur2(l.net)}</b></td>
-        <td>${pastilleControle(l.controle)}${t.negociable && l.brut > 0 ? `<span class="petit">max. ${t.remises_max.banquier} / ${t.remises_max.directeur} / ${t.remises_max.comite} %</span>` : ""}</td></tr>`;
-    }).join("") + `<tr class="total"><td>Total annuel</td><td class="d">${eur2(s.total_brut)}</td><td></td><td class="d">${eur2(s.total_net)}</td><td></td></tr></tbody>`;
+  const inval = s.lignes.filter((l) => l.controle.statut === "invalide");
+  $("s-alerte").innerHTML = hors.length || verr.length || inval.length ? `<div class="encart critique">${hors.map((l) => `<span><b>${l.tarif_id}</b> : remise de ${pct(l.remise_pct, 0)} au-delà du plafond de ${pct(plafond(M.tarif(l.tarif_id)), 0)}. Réduire la remise ou la présenter hors grille.</span>`).join("")}${verr.map((l) => `<span><b>${l.tarif_id}</b> : tarif non négociable (${esc(M.tarif(l.tarif_id).motif_verrou)}). La remise saisie n'est pas appliquée.</span>`).join("")}${inval.map((l) => `<span><b>${l.tarif_id}</b> : remise négative (${pct(l.remise_pct, 0)}). Elle n'est pas appliquée.</span>`).join("")}</div>` : "";
   $("texte-demande").value = texteDemande(s);
 }
 
@@ -706,19 +789,32 @@ function texteDemande(s) {
     `Validation requise : ${niveau}`,
     ``,
     `Remises demandées :`,
-    ...lignes.map((l) => `- ${l.tarif_id} ${l.libelle} : ${pct(l.remise_pct, 0)} (${eur2(l.brut)} → ${eur2(l.net)}) – ${l.controle.message}`),
+    ...parPoste(s).flatMap(([k, ls]) => {
+      const remisees = ls.map(([l]) => l).filter((l) => l.remise_pct > 0);
+      return remisees.length ? [`${D.postes[k]}`, ...remisees.map((l) => `- ${l.tarif_id} ${l.libelle} : ${pct(l.remise_pct, 0)} (${eur2(l.brut)} → ${eur2(l.net)}) – ${l.controle.message}`)] : [];
+    }),
     ``,
     `Calcul : grille tarifaire au ${D.meta.date_effet}, données générées le ${D.meta.genere_le}.`,
   ].join("\n");
 }
 
-$("s-lignes").addEventListener("change", (e) => {
-  const el = e.target; if (!el.dataset.tarif) return;
+function saisirRemise(el) {
   const v = Math.max(0, Math.min(100, +el.value || 0));
   if (v) profil.remises[el.dataset.tarif] = v; else delete profil.remises[el.dataset.tarif];
+}
+$("s-lignes").addEventListener("change", (e) => {
+  const el = e.target; if (!el.classList.contains("remise")) return;
+  saisirRemise(el);
   rendreSimulation();
   const nouveau = $("r-" + el.dataset.tarif); if (nouveau) nouveau.focus();
 });
+$("s-lignes").addEventListener("input", (e) => {
+  if (!e.target.classList.contains("curseur")) return;
+  saisirRemise(e.target);
+  actualiserRemises();
+});
+$("s-legende").innerHTML = `<span>Curseur de remise :</span>` + DELEG.map((d, i) => `<span><i style="background:var(--niv-${i + 1})"></i>${esc(d.libelle)}</span>`).join("")
+  + `<span><i style="background:var(--critique)"></i>Hors délégation</span>`;
 $("s-profil").addEventListener("change", (e) => chargerProfil(e.target.value));
 $("b-copier").addEventListener("click", () => {
   const ta = $("texte-demande");

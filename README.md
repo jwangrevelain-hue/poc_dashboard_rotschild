@@ -6,6 +6,8 @@ La grille reprend les prix publics de **BNP Paribas Banque Privée – Condition
 
 ## Démarrer
 
+Prérequis : Python ≥ 3.11 ; pour les contrôles complets, Node.js ≥ 18 (parité) et `pdftotext` de poppler (sources), par exemple `brew install node poppler`.
+
 ```bash
 pip install -r requirements.txt
 python construire.py              # valide la grille puis régénère sortie/
@@ -49,6 +51,8 @@ python -m pytest tests                                   # cas de référence
 node tests/parite.cjs                                    # parité Python / navigateur
 python tests/verifier_sources.py conditions-juillet-2026.pdf   # valeurs vs PDF (nécessite pdftotext)
 ```
+
+Un build sans modification laisse `sortie/` intact : l'horodatage n'est renouvelé que si les données changent. L'intégration continue (`.github/workflows/ci.yml`) lance ces contrôles à chaque push et vérifie que `sortie/` a bien été régénéré et commité.
 
 ## Marges de manœuvre
 

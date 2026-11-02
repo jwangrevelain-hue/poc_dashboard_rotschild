@@ -2,7 +2,7 @@
  "meta": {
   "source": "BNP Paribas Banque Privée – Conditions et tarifs au 1er juillet 2026",
   "date_effet": "2026-07-01",
-  "genere_le": "2026-10-30 20:58",
+  "genere_le": "2026-11-02 21:19",
   "nb_tarifs": 179,
   "nb_baremes": 7
  },
@@ -28,6 +28,16 @@
   "pea_plafond_garde_par_ligne_eur": 5,
   "pea_plafond_garde_par_ligne_non_cotee_eur": 25,
   "offre_active_seuil_ordres_gratuite": 50
+ },
+ "postes": {
+  "relation": "Relation bancaire : convention et cartes",
+  "mandat_titres": "Mandat de gestion titres",
+  "mandat_assurance": "Mandat d'arbitrage assurance vie",
+  "conseil": "Gestion conseillée",
+  "compte_titres": "Compte-titres en gestion libre",
+  "versements": "Versements assurance vie et PER",
+  "flux": "Flux internationaux",
+  "services": "Services, crédit et incidents"
  },
  "tarifs": [
   {
@@ -5123,7 +5133,8 @@
        "niveau": "directeur",
        "message": "Accordable par : Directeur de centre"
       },
-      "page": 25
+      "page": 25,
+      "poste": "relation"
      },
      {
       "tarif_id": "GSM-103",
@@ -5139,7 +5150,8 @@
        "niveau": "directeur",
        "message": "Accordable par : Directeur de centre"
       },
-      "page": 29
+      "page": 29,
+      "poste": "mandat_titres"
      },
      {
       "tarif_id": "GSA-005",
@@ -5155,7 +5167,8 @@
        "niveau": null,
        "message": "Prix grille"
       },
-      "page": 30
+      "page": 30,
+      "poste": "mandat_assurance"
      },
      {
       "tarif_id": "BRS-010",
@@ -5171,7 +5184,8 @@
        "niveau": null,
        "message": "Prix grille"
       },
-      "page": 38
+      "page": 38,
+      "poste": "compte_titres"
      },
      {
       "tarif_id": "BRS-011",
@@ -5187,7 +5201,8 @@
        "niveau": null,
        "message": "Prix grille"
       },
-      "page": 38
+      "page": 38,
+      "poste": "compte_titres"
      },
      {
       "tarif_id": "BRS-012",
@@ -5203,7 +5218,8 @@
        "niveau": null,
        "message": "Prix grille"
       },
-      "page": 38
+      "page": 38,
+      "poste": "compte_titres"
      },
      {
       "tarif_id": "BRS-001",
@@ -5219,7 +5235,8 @@
        "niveau": null,
        "message": "Prix grille"
       },
-      "page": 37
+      "page": 37,
+      "poste": "compte_titres"
      },
      {
       "tarif_id": "BRS-007",
@@ -5235,7 +5252,8 @@
        "niveau": null,
        "message": "Prix grille"
       },
-      "page": 37
+      "page": 37,
+      "poste": "compte_titres"
      },
      {
       "tarif_id": "AVI-001",
@@ -5251,7 +5269,8 @@
        "niveau": "directeur",
        "message": "Accordable par : Directeur de centre"
       },
-      "page": 39
+      "page": 39,
+      "poste": "versements"
      },
      {
       "tarif_id": "VIR-009",
@@ -5267,7 +5286,8 @@
        "niveau": null,
        "message": "Prix grille"
       },
-      "page": 10
+      "page": 10,
+      "poste": "flux"
      },
      {
       "tarif_id": "CAR-014",
@@ -5283,7 +5303,8 @@
        "niveau": null,
        "message": "Prix grille"
       },
-      "page": 9
+      "page": 9,
+      "poste": "flux"
      },
      {
       "tarif_id": "CPT-012",
@@ -5299,7 +5320,8 @@
        "niveau": null,
        "message": "Prix grille"
       },
-      "page": 6
+      "page": 6,
+      "poste": "services"
      }
     ],
     "total_brut": 63084.0,
@@ -5353,7 +5375,8 @@
        "niveau": null,
        "message": "Prix grille"
       },
-      "page": 25
+      "page": 25,
+      "poste": "relation"
      },
      {
       "tarif_id": "GCO-002",
@@ -5369,7 +5392,8 @@
        "niveau": "comite",
        "message": "Accordable par : Comité tarifaire"
       },
-      "page": 33
+      "page": 33,
+      "poste": "conseil"
      },
      {
       "tarif_id": "BRS-010",
@@ -5385,7 +5409,8 @@
        "niveau": null,
        "message": "Prix grille"
       },
-      "page": 38
+      "page": 38,
+      "poste": "compte_titres"
      },
      {
       "tarif_id": "BRS-013",
@@ -5401,7 +5426,8 @@
        "niveau": null,
        "message": "Prix grille"
       },
-      "page": 38
+      "page": 38,
+      "poste": "compte_titres"
      },
      {
       "tarif_id": "BRS-002",
@@ -5417,7 +5443,8 @@
        "niveau": null,
        "message": "Prix grille"
       },
-      "page": 37
+      "page": 37,
+      "poste": "compte_titres"
      },
      {
       "tarif_id": "AVI-002",
@@ -5433,7 +5460,8 @@
        "niveau": null,
        "message": "Prix grille"
       },
-      "page": 39
+      "page": 39,
+      "poste": "versements"
      }
     ],
     "total_brut": 6150.0,
@@ -5493,7 +5521,8 @@
        "niveau": null,
        "message": "Prix grille"
       },
-      "page": 7
+      "page": 7,
+      "poste": "relation"
      },
      {
       "tarif_id": "CAR-003",
@@ -5509,7 +5538,8 @@
        "niveau": null,
        "message": "Prix grille"
       },
-      "page": 7
+      "page": 7,
+      "poste": "relation"
      },
      {
       "tarif_id": "GSM-112",
@@ -5525,7 +5555,8 @@
        "niveau": null,
        "message": "Prix grille"
       },
-      "page": 29
+      "page": 29,
+      "poste": "mandat_titres"
      },
      {
       "tarif_id": "BRS-010",
@@ -5541,7 +5572,8 @@
        "niveau": null,
        "message": "Prix grille"
       },
-      "page": 38
+      "page": 38,
+      "poste": "compte_titres"
      },
      {
       "tarif_id": "BRS-011",
@@ -5557,7 +5589,8 @@
        "niveau": null,
        "message": "Prix grille"
       },
-      "page": 38
+      "page": 38,
+      "poste": "compte_titres"
      },
      {
       "tarif_id": "BRS-001",
@@ -5573,7 +5606,8 @@
        "niveau": null,
        "message": "Prix grille"
       },
-      "page": 37
+      "page": 37,
+      "poste": "compte_titres"
      },
      {
       "tarif_id": "AVI-001",
@@ -5589,7 +5623,8 @@
        "niveau": null,
        "message": "Prix grille"
       },
-      "page": 39
+      "page": 39,
+      "poste": "versements"
      },
      {
       "tarif_id": "CRE-007",
@@ -5605,7 +5640,8 @@
        "niveau": "comite",
        "message": "Accordable par : Comité tarifaire"
       },
-      "page": 23
+      "page": 23,
+      "poste": "services"
      },
      {
       "tarif_id": "INC-001",
@@ -5621,7 +5657,8 @@
        "niveau": null,
        "message": "Non négociable : Plafond réglementaire (8 €/opération et 80 €/mois)"
       },
-      "page": 20
+      "page": 20,
+      "poste": "services"
      }
     ],
     "total_brut": 9504.75,
@@ -5631,6 +5668,332 @@
     "taux_global_pct": 1.6663,
     "niveau_requis": "comite",
     "alertes": 1
+   }
+  }
+ },
+ "cas_limites": {
+  "remise_negative": {
+   "profil": {
+    "convention_bp": true,
+    "remises": {
+     "CBP-001": -20
+    }
+   },
+   "resultat": {
+    "lignes": [
+     {
+      "tarif_id": "CBP-001",
+      "famille": "Convention Banque Privée",
+      "libelle": "Commission forfaitaire annuelle (inclut Esprit Libre + Visa Infinite + Visa Premier)",
+      "detail": "Forfait annuel",
+      "quantite": 1,
+      "brut": 1000.0,
+      "remise_pct": -20,
+      "net": 1000.0,
+      "controle": {
+       "statut": "invalide",
+       "niveau": null,
+       "message": "Remise négative : non appliquée"
+      },
+      "page": 25,
+      "poste": "relation"
+     }
+    ],
+    "total_brut": 1000.0,
+    "total_net": 1000.0,
+    "remise_totale": 0.0,
+    "encours": 0,
+    "taux_global_pct": null,
+    "niveau_requis": null,
+    "alertes": 1
+   }
+  },
+  "pea_active_plafond_partiel": {
+   "profil": {
+    "compte_titres": {
+     "valorisation": 100000,
+     "enveloppe": "PEA",
+     "offre": "Active",
+     "lignes_porteur": 10,
+     "ordres_en_ligne": 30,
+     "montant_moyen_ordre": 2000
+    }
+   },
+   "resultat": {
+    "lignes": [
+     {
+      "tarif_id": "BRS-010",
+      "famille": "Bourse et conservation",
+      "libelle": "Droits de garde – commission proportionnelle (barème par tranches)",
+      "detail": "Barème par tranches sur 100 000 €",
+      "quantite": 1,
+      "brut": 300.0,
+      "remise_pct": 0.0,
+      "net": 300.0,
+      "controle": {
+       "statut": "grille",
+       "niveau": null,
+       "message": "Prix grille"
+      },
+      "page": 38,
+      "poste": "compte_titres"
+     },
+     {
+      "tarif_id": "BRS-011",
+      "famille": "Bourse et conservation",
+      "libelle": "Droit fixe par ligne au porteur",
+      "detail": "10 lignes × 5 €",
+      "quantite": 10,
+      "brut": 50.0,
+      "remise_pct": 0.0,
+      "net": 50.0,
+      "controle": {
+       "statut": "grille",
+       "niveau": null,
+       "message": "Prix grille"
+      },
+      "page": 38,
+      "poste": "compte_titres"
+     },
+     {
+      "tarif_id": "BRS-013",
+      "famille": "Bourse et conservation",
+      "libelle": "Abonnement annuel offre Active",
+      "detail": "Abonnement annuel (plafond PEA)",
+      "quantite": 1,
+      "brut": 100.0,
+      "remise_pct": 0.0,
+      "net": 100.0,
+      "controle": {
+       "statut": "grille",
+       "niveau": null,
+       "message": "Prix grille"
+      },
+      "page": 38,
+      "poste": "compte_titres"
+     },
+     {
+      "tarif_id": "BRS-002",
+      "famille": "Bourse et conservation",
+      "libelle": "Ordre Euronext en ligne – offre Active",
+      "detail": "30 ordres de 2 000 € × 5,00 €",
+      "quantite": 30,
+      "brut": 150.0,
+      "remise_pct": 0.0,
+      "net": 150.0,
+      "controle": {
+       "statut": "grille",
+       "niveau": null,
+       "message": "Prix grille"
+      },
+      "page": 37,
+      "poste": "compte_titres"
+     }
+    ],
+    "total_brut": 600.0,
+    "total_net": 600.0,
+    "remise_totale": 0.0,
+    "encours": 100000,
+    "taux_global_pct": 0.6,
+    "niveau_requis": null,
+    "alertes": 0
+   }
+  },
+  "pea_active_plafond_total": {
+   "profil": {
+    "compte_titres": {
+     "valorisation": 20000,
+     "enveloppe": "PEA",
+     "offre": "Active",
+     "lignes_porteur": 2,
+     "lignes_nominatif": 1,
+     "ordres_en_ligne": 30,
+     "montant_moyen_ordre": 1000
+    }
+   },
+   "resultat": {
+    "lignes": [
+     {
+      "tarif_id": "BRS-010",
+      "famille": "Bourse et conservation",
+      "libelle": "Droits de garde – commission proportionnelle (barème par tranches)",
+      "detail": "Barème par tranches sur 20 000 €",
+      "quantite": 1,
+      "brut": 80.0,
+      "remise_pct": 0.0,
+      "net": 80.0,
+      "controle": {
+       "statut": "grille",
+       "niveau": null,
+       "message": "Prix grille"
+      },
+      "page": 38,
+      "poste": "compte_titres"
+     },
+     {
+      "tarif_id": "BRS-011",
+      "famille": "Bourse et conservation",
+      "libelle": "Droit fixe par ligne au porteur",
+      "detail": "2 lignes × 5 €",
+      "quantite": 2,
+      "brut": 10.0,
+      "remise_pct": 0.0,
+      "net": 10.0,
+      "controle": {
+       "statut": "grille",
+       "niveau": null,
+       "message": "Prix grille"
+      },
+      "page": 38,
+      "poste": "compte_titres"
+     },
+     {
+      "tarif_id": "BRS-012",
+      "famille": "Bourse et conservation",
+      "libelle": "Droit fixe par ligne au nominatif ou en dépôt à l'étranger",
+      "detail": "1 lignes × 5 € (plafond PEA)",
+      "quantite": 1,
+      "brut": 5.0,
+      "remise_pct": 0.0,
+      "net": 5.0,
+      "controle": {
+       "statut": "grille",
+       "niveau": null,
+       "message": "Prix grille"
+      },
+      "page": 38,
+      "poste": "compte_titres"
+     },
+     {
+      "tarif_id": "BRS-013",
+      "famille": "Bourse et conservation",
+      "libelle": "Abonnement annuel offre Active",
+      "detail": "Abonnement annuel (plafond PEA)",
+      "quantite": 1,
+      "brut": 0.0,
+      "remise_pct": 0.0,
+      "net": 0.0,
+      "controle": {
+       "statut": "grille",
+       "niveau": null,
+       "message": "Prix grille"
+      },
+      "page": 38,
+      "poste": "compte_titres"
+     },
+     {
+      "tarif_id": "BRS-002",
+      "famille": "Bourse et conservation",
+      "libelle": "Ordre Euronext en ligne – offre Active",
+      "detail": "30 ordres de 1 000 € × 5,00 €",
+      "quantite": 30,
+      "brut": 150.0,
+      "remise_pct": 0.0,
+      "net": 150.0,
+      "controle": {
+       "statut": "grille",
+       "niveau": null,
+       "message": "Prix grille"
+      },
+      "page": 37,
+      "poste": "compte_titres"
+     }
+    ],
+    "total_brut": 245.0,
+    "total_net": 245.0,
+    "remise_totale": 0.0,
+    "encours": 20000,
+    "taux_global_pct": 1.225,
+    "niveau_requis": null,
+    "alertes": 0
+   }
+  },
+  "pea_start_au_plafond": {
+   "profil": {
+    "compte_titres": {
+     "valorisation": 10000,
+     "enveloppe": "PEA",
+     "offre": "Start",
+     "lignes_porteur": 20
+    }
+   },
+   "resultat": {
+    "lignes": [
+     {
+      "tarif_id": "BRS-010",
+      "famille": "Bourse et conservation",
+      "libelle": "Droits de garde – commission proportionnelle (barème par tranches)",
+      "detail": "Barème par tranches sur 10 000 €",
+      "quantite": 1,
+      "brut": 40.0,
+      "remise_pct": 0.0,
+      "net": 40.0,
+      "controle": {
+       "statut": "grille",
+       "niveau": null,
+       "message": "Prix grille"
+      },
+      "page": 38,
+      "poste": "compte_titres"
+     },
+     {
+      "tarif_id": "BRS-011",
+      "famille": "Bourse et conservation",
+      "libelle": "Droit fixe par ligne au porteur",
+      "detail": "20 lignes × 5 €",
+      "quantite": 20,
+      "brut": 100.0,
+      "remise_pct": 0.0,
+      "net": 100.0,
+      "controle": {
+       "statut": "grille",
+       "niveau": null,
+       "message": "Prix grille"
+      },
+      "page": 38,
+      "poste": "compte_titres"
+     }
+    ],
+    "total_brut": 140.0,
+    "total_net": 140.0,
+    "remise_totale": 0.0,
+    "encours": 10000,
+    "taux_global_pct": 1.4,
+    "niveau_requis": null,
+    "alertes": 0
+   }
+  },
+  "credit_immo_minimum": {
+   "profil": {
+    "credit_immo": 50000
+   },
+   "resultat": {
+    "lignes": [
+     {
+      "tarif_id": "CRE-007",
+      "famille": "Découverts et crédits",
+      "libelle": "Commission d'ouverture d'un prêt immobilier",
+      "detail": "50 000 € × 0,99 % (min. 650 €)",
+      "quantite": 1,
+      "brut": 650.0,
+      "remise_pct": 0.0,
+      "net": 650.0,
+      "controle": {
+       "statut": "grille",
+       "niveau": null,
+       "message": "Prix grille"
+      },
+      "page": 23,
+      "poste": "services"
+     }
+    ],
+    "total_brut": 650.0,
+    "total_net": 650.0,
+    "remise_totale": 0.0,
+    "encours": 0,
+    "taux_global_pct": null,
+    "niveau_requis": null,
+    "alertes": 0
    }
   }
  },

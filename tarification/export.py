@@ -1,10 +1,13 @@
 """Exports : JSON pour le dashboard, classeur Excel pour l'existant."""
 from __future__ import annotations
 
+import io
 import json
+import re
 from dataclasses import asdict
 from datetime import datetime
 from pathlib import Path
+from zipfile import ZipFile
 
 from openpyxl import Workbook
 from openpyxl.styles import Alignment, Font, PatternFill
@@ -12,7 +15,7 @@ from openpyxl.utils import get_column_letter
 
 from .grille import Grille
 from .portefeuille import agreger, generer_clients
-from .simulation import PROFILS_EXEMPLES, simuler
+from .simulation import CAS_LIMITES, POSTES, PROFILS_EXEMPLES, simuler
 
 
 def donnees_dashboard(grille: Grille, nb_clients: int = 240) -> dict:
@@ -27,12 +30,27 @@ def donnees_dashboard(grille: Grille, nb_clients: int = 240) -> dict:
         },
         "delegations": grille.delegations,
         "regles": grille.politique["regles"],
+        "postes": POSTES,
         "tarifs": [asdict(t) for t in grille.tarifs.values()],
         "baremes": {b.id: asdict(b) for b in grille.baremes.values()},
         "exemples": {k: {"profil": p, "resultat": simuler(grille, p)} for k, p in PROFILS_EXEMPLES.items()},
+        "cas_limites": {k: {"profil": p, "resultat": simuler(grille, p)} for k, p in CAS_LIMITES.items()},
         "portefeuille": agreger(grille, clients),
         "profils_portefeuille": clients,
     }
+
+
+def reprendre_horodatage(donnees: dict, chemin: Path) -> None:
+    """Reprend genere_le de l'export précédent si rien d'autre n'a changé : un build sans modification
+    laisse sortie/ intact, et la CI peut vérifier que sortie/ est à jour."""
+    try:
+        ancien = json.loads(chemin.read_text(encoding="utf-8"))
+    except (OSError, ValueError):
+        return
+    nouveau = json.loads(json.dumps(donnees, ensure_ascii=False))
+    sans_date = lambda d: {**d, "meta": {**d.get("meta", {}), "genere_le": None}}
+    if ancien.get("meta", {}).get("genere_le") and sans_date(ancien) == sans_date(nouveau):
+        donnees["meta"]["genere_le"] = ancien["meta"]["genere_le"]
 
 
 def ecrire_json(donnees: dict, chemin: Path) -> None:
@@ -107,10 +125,10 @@ def ecrire_excel(grille: Grille, donnees: dict, chemin: Path) -> None:
     lignes = []
     for cle, ex in donnees["exemples"].items():
         for l in ex["resultat"]["lignes"]:
-            lignes.append([ex["profil"]["nom"], l["tarif_id"], l["libelle"], l["detail"], l["brut"], l["remise_pct"],
+            lignes.append([ex["profil"]["nom"], POSTES[l["poste"]], l["tarif_id"], l["libelle"], l["detail"], l["brut"], l["remise_pct"],
                            l["net"], l["controle"]["message"]])
-        lignes.append([ex["profil"]["nom"], "TOTAL", "", "", ex["resultat"]["total_brut"], None, ex["resultat"]["total_net"], ""])
-    _feuille(wb, "Simulations", [("Client", 36), ("ID", 10), ("Libellé", 48), ("Détail", 46), ("Brut €", 12),
+        lignes.append([ex["profil"]["nom"], "", "TOTAL", "", "", ex["resultat"]["total_brut"], None, ex["resultat"]["total_net"], ""])
+    _feuille(wb, "Simulations", [("Client", 36), ("Poste", 34), ("ID", 10), ("Libellé", 48), ("Détail", 46), ("Brut €", 12),
                                   ("Remise %", 9), ("Net €", 12), ("Contrôle de délégation", 36)], lignes, avert)
 
     lignes = [[c["id"], c["centre"], c["patrimoine"], c["encours"], c["brut"], c["net"], c["remise"],
@@ -122,5 +140,16 @@ def ecrire_excel(grille: Grille, donnees: dict, chemin: Path) -> None:
     for row in ws.iter_rows(min_row=3, min_col=3, max_col=7):
         for cell in row:
             cell.number_format = "# ##0"
+    # Classeur reproductible : propriétés et dates internes du zip tirées de genere_le, pas de l'heure du build
+    date = datetime.strptime(donnees["meta"]["genere_le"], "%Y-%m-%d %H:%M")
+    wb.properties.created = date
+    tampon = io.BytesIO()
+    wb.save(tampon)
     chemin.parent.mkdir(parents=True, exist_ok=True)
-    wb.save(chemin)
+    with ZipFile(tampon) as src, ZipFile(chemin, "w") as dst:
+        for info in src.infolist():
+            contenu = src.read(info)
+            if info.filename == "docProps/core.xml":  # openpyxl y écrit l'heure de sauvegarde
+                contenu = re.sub(rb"(<dcterms:modified[^>]*>)[^<]*", rb"\g<1>" + date.strftime("%Y-%m-%dT%H:%M:%SZ").encode(), contenu)
+            info.date_time = date.timetuple()[:6]
+            dst.writestr(info, contenu)

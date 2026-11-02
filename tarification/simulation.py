@@ -12,6 +12,18 @@ from .grille import Grille
 
 CARTES_INCLUSES_CONVENTION = ("CAR-001", "CAR-002")  # Visa Infinite + Visa Premier (p. 25)
 
+# Postes de la facture, contrat par contrat, dans l'ordre d'affichage
+POSTES = {
+    "relation": "Relation bancaire : convention et cartes",
+    "mandat_titres": "Mandat de gestion titres",
+    "mandat_assurance": "Mandat d'arbitrage assurance vie",
+    "conseil": "Gestion conseillée",
+    "compte_titres": "Compte-titres en gestion libre",
+    "versements": "Versements assurance vie et PER",
+    "flux": "Flux internationaux",
+    "services": "Services, crédit et incidents",
+}
+
 
 @dataclass
 class Ligne:
@@ -25,6 +37,7 @@ class Ligne:
     net: float
     controle: Controle
     page: int
+    poste: str
 
     def en_dict(self) -> dict:
         d = asdict(self)
@@ -45,12 +58,13 @@ class _Facture:
         self.grille = grille
         self.remises = remises
         self.lignes: list[Ligne] = []
+        self.poste = ""  # poste en cours, attribué aux lignes ajoutées
 
     def ajouter(self, tarif_id: str, detail: str, brut_total: float, quantite: float = 1, remise: float | None = None):
         t = self.grille.tarif(tarif_id)
         r = self.remises.get(tarif_id, 0.0) if remise is None else remise
-        if not t.negociable:
-            r_appliquee = 0.0  # une remise sur un tarif verrouillé est signalée mais pas appliquée
+        if not t.negociable or r < 0:
+            r_appliquee = 0.0  # une remise sur un tarif verrouillé, ou négative, est signalée mais pas appliquée
         else:
             r_appliquee = min(r, 100.0)
         self.lignes.append(
@@ -65,6 +79,7 @@ class _Facture:
                 net=arrondi(brut_total * (1 - r_appliquee / 100)),
                 controle=controler_remise(self.grille, t, r),
                 page=t.page,
+                poste=self.poste,
             )
         )
 
@@ -74,6 +89,7 @@ def simuler(grille: Grille, profil: dict) -> dict:
     f = _Facture(grille, profil.get("remises", {}))
     convention = profil.get("convention_bp", False)
 
+    f.poste = "relation"
     if convention:
         t = grille.tarif("CBP-001")
         f.ajouter("CBP-001", "Forfait annuel", prix_brut(grille, t))
@@ -94,6 +110,7 @@ def simuler(grille: Grille, profil: dict) -> dict:
             f.ajouter(c, "Cotisation annuelle", prix)
 
     # Gestion sous mandat titres
+    f.poste = "mandat_titres"
     m = profil.get("mandat_titres")
     if m and m.get("encours"):
         t = grille.tarif(m["offre"])
@@ -105,6 +122,7 @@ def simuler(grille: Grille, profil: dict) -> dict:
         f.ajouter(t.id, detail, brut)
 
     # Mandat d'arbitrage assurance
+    f.poste = "mandat_assurance"
     m = profil.get("mandat_assurance")
     if m and m.get("encours"):
         t = grille.tarif(m["offre"])
@@ -115,37 +133,59 @@ def simuler(grille: Grille, profil: dict) -> dict:
         f.ajouter(t.id, detail, prix_brut(grille, t, m["encours"], perf))
 
     # Gestion conseillée
+    f.poste = "conseil"
     m = profil.get("conseil")
     if m and m.get("encours"):
         t = grille.tarif(m["offre"])
         f.ajouter(t.id, f"{_eur(m['encours'])} × {_pct(t.valeur)}", prix_brut(grille, t, m["encours"]))
 
     # Compte-titres en gestion libre
+    f.poste = "compte_titres"
     ct = profil.get("compte_titres")
     if ct and ct.get("valorisation"):
         pea = ct.get("enveloppe") == "PEA"
         active = ct.get("offre") == "Active"
         nb_ordres = ct.get("ordres_en_ligne", 0) + ct.get("ordres_agence", 0)
-        gratuite_active = active and nb_ordres >= regles["offre_active_seuil_ordres_gratuite"]
+        seuil = regles["offre_active_seuil_ordres_gratuite"]
+        gratuite_active = active and nb_ordres >= seuil
 
         if gratuite_active:
-            detail = f"Offerts : {nb_ordres} ordres ≥ {regles['offre_active_seuil_ordres_gratuite']}"
-            f.ajouter("BRS-010", detail, 0.0)
+            f.ajouter("BRS-010", f"Offerts : {nb_ordres} ordres ≥ {seuil}", 0.0)
+            f.ajouter("BRS-013", f"Offert (≥ {seuil} ordres)", 0.0)
         else:
-            t = grille.tarif("BRS-010")
-            f.ajouter("BRS-010", f"Barème par tranches sur {_eur(ct['valorisation'])}", prix_brut(grille, t, ct["valorisation"]))
-            n = ct.get("lignes_porteur", 0)
-            if n:
-                f.ajouter("BRS-011", f"{n} lignes × 5 €", n * grille.tarif("BRS-011").valeur, quantite=n)
-            n = ct.get("lignes_nominatif", 0)
-            if n:
-                unitaire = grille.tarif("BRS-012").valeur
-                plafonne = pea and unitaire > regles["pea_plafond_garde_par_ligne_eur"]
-                if plafonne:
-                    unitaire = regles["pea_plafond_garde_par_ligne_eur"]
-                f.ajouter("BRS-012", f"{n} lignes × {unitaire:g} €" + (" (plafond PEA)" if plafonne else ""), n * unitaire, quantite=n)
-        if active:
-            f.ajouter("BRS-013", "Offert (≥ 50 ordres)" if gratuite_active else "Abonnement annuel", 0.0 if gratuite_active else grille.tarif("BRS-013").valeur)
+            proportionnel = prix_brut(grille, grille.tarif("BRS-010"), ct["valorisation"])
+            n_porteur = ct.get("lignes_porteur", 0)
+            unitaire_porteur = grille.tarif("BRS-011").valeur
+            n_nominatif = ct.get("lignes_nominatif", 0)
+            unitaire_nominatif = grille.tarif("BRS-012").valeur
+            nominatif_plafonne = pea and unitaire_nominatif > regles["pea_plafond_garde_par_ligne_eur"]
+            if nominatif_plafonne:
+                unitaire_nominatif = regles["pea_plafond_garde_par_ligne_eur"]
+            abonnement = grille.tarif("BRS-013").valeur if active else 0.0
+            # PEA : droits de garde et frais de gestion plafonnés dans leur ensemble à 0,40 % de la
+            # valorisation + 5 € par ligne (p. 38) ; l'excédent est retiré de l'abonnement, puis de la
+            # commission proportionnelle.
+            abonnement_plafonne = proportionnel_plafonne = False
+            if pea:
+                plafond = (ct["valorisation"] * regles["pea_plafond_garde_pct"] / 100
+                           + (n_porteur + n_nominatif) * regles["pea_plafond_garde_par_ligne_eur"])
+                exces = proportionnel + n_porteur * unitaire_porteur + n_nominatif * unitaire_nominatif + abonnement - plafond
+                if exces > 0.005 and abonnement > 0:
+                    retrait = min(exces, abonnement)
+                    abonnement -= retrait
+                    exces -= retrait
+                    abonnement_plafonne = True
+                if exces > 0.005:
+                    proportionnel = max(proportionnel - exces, 0.0)
+                    proportionnel_plafonne = True
+
+            f.ajouter("BRS-010", f"Barème par tranches sur {_eur(ct['valorisation'])}" + (" (plafond PEA)" if proportionnel_plafonne else ""), proportionnel)
+            if n_porteur:
+                f.ajouter("BRS-011", f"{n_porteur} lignes × {unitaire_porteur:g} €", n_porteur * unitaire_porteur, quantite=n_porteur)
+            if n_nominatif:
+                f.ajouter("BRS-012", f"{n_nominatif} lignes × {unitaire_nominatif:g} €" + (" (plafond PEA)" if nominatif_plafonne else ""), n_nominatif * unitaire_nominatif, quantite=n_nominatif)
+            if active:
+                f.ajouter("BRS-013", "Abonnement annuel" + (" (plafond PEA)" if abonnement_plafonne else ""), abonnement)
 
         n = ct.get("ordres_en_ligne", 0)
         if n:
@@ -166,6 +206,7 @@ def simuler(grille: Grille, profil: dict) -> dict:
             f.ajouter("BRS-007", f"{n} ordres de {_eur(montant)} × {unitaire:.2f} €".replace(".", ",") + (" (plafond PEA)" if plafonne else ""), n * unitaire, quantite=n)
 
     # Assurance vie / PER
+    f.poste = "versements"
     for cle, tid in (("versements_av", "AVI-001"), ("versements_per", "AVI-002")):
         montant = profil.get(cle, 0)
         if montant:
@@ -173,6 +214,7 @@ def simuler(grille: Grille, profil: dict) -> dict:
             f.ajouter(tid, f"{_eur(montant)} versés × {_pct(t.valeur)}", prix_brut(grille, t, montant))
 
     # Flux internationaux
+    f.poste = "flux"
     for cle, tid in (("virements_non_sepa_en_ligne", "VIR-007"), ("virements_non_sepa_agence", "VIR-009")):
         n = profil.get(cle, 0)
         if n:
@@ -188,6 +230,7 @@ def simuler(grille: Grille, profil: dict) -> dict:
         f.ajouter(tid, f"{_eur(depenses)} en {nb} paiements : {_pct(t.valeur)} + {t.fixe_eur:.2f} €/paiement".replace(".", ","), brut, quantite=nb)
 
     # Services
+    f.poste = "services"
     if profil.get("coffre"):
         f.ajouter("CPT-012", "Cotisation annuelle", grille.tarif("CPT-012").valeur)
     n = profil.get("attestations", 0)
@@ -196,7 +239,8 @@ def simuler(grille: Grille, profil: dict) -> dict:
     montant = profil.get("credit_immo", 0)
     if montant:
         t = grille.tarif("CRE-007")
-        f.ajouter("CRE-007", f"{_eur(montant)} × {_pct(t.valeur)} (min. 650 €)", prix_brut(grille, t, montant))
+        minimum = f" (min. {t.minimum:g} €)" if t.minimum is not None else ""
+        f.ajouter("CRE-007", f"{_eur(montant)} × {_pct(t.valeur)}{minimum}", prix_brut(grille, t, montant))
     for tid, n in profil.get("incidents", {}).items():
         if n:
             t = grille.tarif(tid)
@@ -207,7 +251,7 @@ def simuler(grille: Grille, profil: dict) -> dict:
     ) + (profil.get("compte_titres") or {}).get("valorisation", 0)
     total_brut = arrondi(sum(l.brut for l in f.lignes))
     total_net = arrondi(sum(l.net for l in f.lignes))
-    alertes = [l for l in f.lignes if l.controle.statut in {"hors_delegation", "verrouille"}]
+    alertes = [l for l in f.lignes if l.controle.statut in {"hors_delegation", "verrouille", "invalide"}]
     niveaux = [l.controle.niveau for l in f.lignes if l.controle.niveau]
     ordre = [d["code"] for d in grille.delegations]
     niveau_requis = max(niveaux, key=ordre.index) if niveaux else None
@@ -268,4 +312,22 @@ PROFILS_EXEMPLES = {
         "incidents": {"INC-001": 3},
         "remises": {"CRE-007": 60, "INC-001": 100},
     },
+}
+
+
+# Cas limites rejoués par tests/parite.cjs : chemins que ni les exemples ni le portefeuille fictif n'empruntent.
+CAS_LIMITES = {
+    "remise_negative": {"convention_bp": True, "remises": {"CBP-001": -20}},
+    "pea_active_plafond_partiel": {
+        "compte_titres": {"valorisation": 100_000, "enveloppe": "PEA", "offre": "Active", "lignes_porteur": 10,
+                          "ordres_en_ligne": 30, "montant_moyen_ordre": 2_000},
+    },
+    "pea_active_plafond_total": {
+        "compte_titres": {"valorisation": 20_000, "enveloppe": "PEA", "offre": "Active", "lignes_porteur": 2,
+                          "lignes_nominatif": 1, "ordres_en_ligne": 30, "montant_moyen_ordre": 1_000},
+    },
+    "pea_start_au_plafond": {
+        "compte_titres": {"valorisation": 10_000, "enveloppe": "PEA", "offre": "Start", "lignes_porteur": 20},
+    },
+    "credit_immo_minimum": {"credit_immo": 50_000},
 }

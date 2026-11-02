@@ -1,0 +1,35 @@
+name: Contrôles
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  controles:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Dépendances
+        run: |
+          pip install -r requirements.txt
+          sudo apt-get update && sudo apt-get install -y poppler-utils
+      - name: Grille cohérente
+        run: python construire.py --valider
+      - name: Cas de référence
+        run: python -m pytest tests -q
+      - name: Sorties à jour
+        # le .xlsx est exclu : ses octets dépendent de la version d'openpyxl installée
+        run: |
+          python construire.py
+          git diff --exit-code -- sortie/donnees.json sortie/dashboard.html \
+            || { echo "::error::sortie/ n'est pas à jour : lancer python construire.py et commiter"; exit 1; }
+      - name: Parité Python / navigateur
+        run: node tests/parite.cjs
+      - name: Valeurs conformes au PDF
+        run: python tests/verifier_sources.py conditions-juillet-2026.pdf

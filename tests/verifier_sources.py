@@ -1,6 +1,8 @@
 """Contrôle croisé grille <-> PDF : chaque valeur doit figurer sur la page citée.
 
     python tests/verifier_sources.py conditions-juillet-2026.pdf
+
+Code retour 1 si une valeur est introuvable : utilisable en CI.
 """
 import re
 import subprocess
@@ -55,10 +57,14 @@ def main(pdf):
                 verifies += 1
                 if not any(x in page for x in c):
                     manquants.append(f"barème {b.id} p.{b.page} : {v} {u} introuvable")
-    print(f"{verifies} valeurs contrôlées, {len(manquants)} introuvable(s) à vérifier à l'œil :")
+    if not manquants:
+        print(f"✓ Sources : {verifies} valeurs retrouvées sur la page citée du PDF")
+        return 0
+    print(f"✗ {verifies} valeurs contrôlées, {len(manquants)} introuvable(s) à vérifier à l'œil :")
     for m in manquants:
         print("  -", m)
+    return 1
 
 
 if __name__ == "__main__":
-    main(sys.argv[1])
+    sys.exit(main(sys.argv[1]))

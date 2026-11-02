@@ -21,14 +21,14 @@ function comparer(nom, attendu, obtenu) {
   attendu.lignes.forEach((la, i) => {
     const lo = obtenu.lignes[i] || {};
     comparaisons++;
-    if (la.tarif_id !== lo.tarif_id || Math.abs(la.net - lo.net) > 0.005 || la.detail !== lo.detail || la.controle.statut !== lo.controle.statut) {
+    if (la.tarif_id !== lo.tarif_id || Math.abs(la.net - lo.net) > 0.005 || la.detail !== lo.detail || la.controle.statut !== lo.controle.statut || la.poste !== lo.poste) {
       ecarts++;
-      console.log(`✗ ${nom} – ligne ${i} : Python ${la.tarif_id} ${la.net} « ${la.detail} » / JS ${lo.tarif_id} ${lo.net} « ${lo.detail} »`);
+      console.log(`✗ ${nom} – ligne ${i} : Python ${la.tarif_id} ${la.net} « ${la.detail} » [${la.poste}] / JS ${lo.tarif_id} ${lo.net} « ${lo.detail} » [${lo.poste}]`);
     }
   });
 }
 
-for (const [cle, ex] of Object.entries(donnees.exemples)) comparer(cle, ex.resultat, moteur.simuler(ex.profil));
+for (const [cle, ex] of Object.entries({ ...donnees.exemples, ...donnees.cas_limites })) comparer(cle, ex.resultat, moteur.simuler(ex.profil));
 const parClient = Object.fromEntries(donnees.portefeuille.clients.map((c) => [c.id, c]));
 for (const p of donnees.profils_portefeuille) {
   const s = moteur.simuler(p);

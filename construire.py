@@ -10,7 +10,7 @@ import sys
 from pathlib import Path
 
 from tarification import charger_grille
-from tarification.export import donnees_dashboard, ecrire_excel, ecrire_json
+from tarification.export import donnees_dashboard, ecrire_excel, ecrire_json, reprendre_horodatage
 
 RACINE = Path(__file__).resolve().parent
 SORTIE = RACINE / "sortie"
@@ -34,6 +34,7 @@ def main() -> int:
         return 0
 
     donnees = donnees_dashboard(grille, args.clients)
+    reprendre_horodatage(donnees, SORTIE / "donnees.json")
     ecrire_json(donnees, SORTIE / "donnees.json")
     ecrire_excel(grille, donnees, SORTIE / "grille_tarifaire.xlsx")
     gabarit = (DASHBOARD / "gabarit.html").read_text(encoding="utf-8")

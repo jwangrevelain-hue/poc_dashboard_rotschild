@@ -56,14 +56,16 @@ def prix_brut(grille: Grille, tarif: Tarif, assiette: float = 0.0, performance_p
 
 @dataclass(frozen=True)
 class Controle:
-    statut: str  # "grille", "dans_delegation", "hors_delegation", "verrouille"
+    statut: str  # "grille", "dans_delegation", "hors_delegation", "verrouille", "invalide"
     niveau: str | None  # code de la délégation qui suffit
     message: str
 
 
 def controler_remise(grille: Grille, tarif: Tarif, remise_pct: float) -> Controle:
     """Qui peut accorder cette remise ? Renvoie le premier niveau suffisant."""
-    if remise_pct <= 0:
+    if remise_pct < 0:
+        return Controle("invalide", None, "Remise négative : non appliquée")
+    if remise_pct == 0:
         return Controle("grille", None, "Prix grille")
     if not tarif.negociable:
         return Controle("verrouille", None, f"Non négociable : {tarif.motif_verrou}")

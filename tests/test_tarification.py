@@ -92,3 +92,81 @@ def test_offre_active_gratuite_au_dela_de_50_ordres(grille):
     garde = lambda s: sum(l["brut"] for l in s["lignes"] if l["tarif_id"] in {"BRS-010", "BRS-011", "BRS-013"})
     assert garde(peu) == pytest.approx(550 + 50 + 150)  # 200 + 200 + 150 de garde, 10 lignes, abonnement
     assert garde(beaucoup) == 0
+
+
+def test_remise_negative_signalee_et_non_appliquee(grille):
+    s = simuler(grille, {"convention_bp": True, "remises": {"CBP-001": -20}})
+    assert s["total_net"] == pytest.approx(s["total_brut"])  # pas de surfacturation
+    assert s["lignes"][0]["controle"]["statut"] == "invalide"
+    assert s["alertes"] == 1
+
+
+def _garde(s):
+    return {l["tarif_id"]: l for l in s["lignes"] if l["tarif_id"] in {"BRS-010", "BRS-011", "BRS-012", "BRS-013"}}
+
+
+def test_plafond_pea_garde_et_frais_de_gestion(grille):
+    # p. 38 : garde + frais de gestion plafonnés ensemble à 0,40 % de la valorisation + 5 € par ligne
+    base = {"valorisation": 100_000, "offre": "Active", "lignes_porteur": 10, "ordres_en_ligne": 30, "montant_moyen_ordre": 2_000}
+    pea = _garde(simuler(grille, {"compte_titres": {**base, "enveloppe": "PEA"}}))
+    assert sum(l["brut"] for l in pea.values()) == pytest.approx(400 + 50)  # 300 + 50 + 150 = 500, plafonné à 450
+    assert pea["BRS-013"]["brut"] == pytest.approx(100)
+    assert "plafond PEA" in pea["BRS-013"]["detail"]
+    cif = _garde(simuler(grille, {"compte_titres": {**base, "enveloppe": "CIF"}}))
+    assert cif["BRS-013"]["brut"] == pytest.approx(150)
+
+
+def test_plafond_pea_pas_declenche_au_plafond_exact(grille):
+    s = _garde(simuler(grille, {"compte_titres": {"valorisation": 10_000, "enveloppe": "PEA", "offre": "Start", "lignes_porteur": 20}}))
+    assert sum(l["brut"] for l in s.values()) == pytest.approx(40 + 100)
+    assert not any("plafond PEA" in l["detail"] for l in s.values())
+
+
+def test_libelles_tires_de_la_grille(grille):
+    from dataclasses import replace
+    from tarification.grille import Grille
+
+    tarifs = {**grille.tarifs, "BRS-011": replace(grille.tarif("BRS-011"), valeur=6.0),
+              "CRE-007": replace(grille.tarif("CRE-007"), minimum=700.0)}
+    politique = {**grille.politique, "regles": {**grille.politique["regles"], "offre_active_seuil_ordres_gratuite": 40}}
+    g = Grille(tarifs=tarifs, baremes=grille.baremes, politique=politique)
+    details = lambda p: {l["tarif_id"]: l["detail"] for l in simuler(g, p)["lignes"]}
+    ct = {"valorisation": 50_000, "enveloppe": "CIF", "offre": "Start", "lignes_porteur": 3}
+    assert details({"compte_titres": ct})["BRS-011"] == "3 lignes × 6 €"
+    assert details({"compte_titres": {**ct, "offre": "Active", "ordres_en_ligne": 45}})["BRS-013"] == "Offert (≥ 40 ordres)"
+    assert details({"credit_immo": 50_000})["CRE-007"].endswith("(min. 700 €)")
+
+
+def test_build_sans_modification_ne_change_pas_les_sorties(grille, tmp_path):
+    from tarification.export import donnees_dashboard, ecrire_excel, ecrire_json, reprendre_horodatage
+
+    def construire(g, horodatage):
+        d = donnees_dashboard(g, 20)
+        d["meta"]["genere_le"] = horodatage
+        reprendre_horodatage(d, tmp_path / "donnees.json")
+        ecrire_json(d, tmp_path / "donnees.json")
+        ecrire_excel(g, d, tmp_path / "grille.xlsx")
+        return d["meta"]["genere_le"], (tmp_path / "grille.xlsx").read_bytes()
+
+    premier = construire(grille, "2026-07-01 09:00")
+    assert construire(grille, "2026-07-02 10:00") == premier  # rien n'a changé : horodatage et classeur repris
+
+    from dataclasses import replace
+    from tarification.grille import Grille
+    modifiee = Grille(tarifs={**grille.tarifs, "BRS-011": replace(grille.tarif("BRS-011"), valeur=6.0)},
+                      baremes=grille.baremes, politique=grille.politique)
+    assert construire(modifiee, "2026-07-03 11:00")[0] == "2026-07-03 11:00"
+
+
+def test_chaque_ligne_rattachee_a_son_poste(grille):
+    from tarification.simulation import POSTES, PROFILS_EXEMPLES
+
+    ordre = list(POSTES)
+    for profil in PROFILS_EXEMPLES.values():
+        postes = [l["poste"] for l in simuler(grille, profil)["lignes"]]
+        assert postes == sorted(postes, key=ordre.index)  # un bloc par poste, dans l'ordre d'affichage
+    lignes = simuler(grille, PROFILS_EXEMPLES["dirigeant"])["lignes"]
+    par_tarif = {l["tarif_id"]: l["poste"] for l in lignes}
+    assert par_tarif["CBP-001"] == "relation"
+    assert par_tarif[PROFILS_EXEMPLES["dirigeant"]["mandat_titres"]["offre"]] == "mandat_titres"
+    assert par_tarif["BRS-010"] == "compte_titres"
